@@ -2,109 +2,37 @@
 
 import Navbar from "@/components/navbar";
 import HeroSection from "@/components/HeroSection";
+import ATSFeatures from "@/components/atsFeatures";
+import Testimonials from "@/components/testimonials";
+import Corrections from "@/components/corrections";
+import JobDescription from "@/components/jobdescription";
+import ScrollingResumes from "@/components/scrollingresumes";
+import TemplateSections from "@/components/templateSections";
+import AboutSection from "@/components/about";
+import Footer from "@/components/footer";
 export default function Home() {
   return (
     <>
-      <Navbar />
-      <main className="pt-2">
-        <HeroSection />
-        <div className="overflow-hidden w-full bg-white py-10">
-          <div className="flex animate-scroll whitespace-nowrap gap-6">
-            <img
-              src="/template1.png"
-              alt="Template 1"
-              className="h-64 w-auto m-5 border-4-blue-200 border-solid rounded-lg"
-            />
-            <img
-              src="/template2.png"
-              alt="Template 2"
-              className="h-64 w-auto m-5 border-4-blue-200 border-solid rounded-lg"
-            />
-            <img
-              src="/template3.png"
-              alt="Template 3"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template4.png"
-              alt="Template 4"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template5.png"
-              alt="Template 5"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template6.png"
-              alt="Template 6"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template1.png"
-              alt="Template 1"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template2.png"
-              alt="Template 2"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template3.png"
-              alt="Template 3"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template4.png"
-              alt="Template 4"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template5.png"
-              alt="Template 5"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template6.png"
-              alt="Template 6"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template1.png"
-              alt="Template 1"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template2.png"
-              alt="Template 2"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template3.png"
-              alt="Template 3"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template4.png"
-              alt="Template 4"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template5.png"
-              alt="Template 5"
-              className="h-64 w-auto m-5"
-            />
-            <img
-              src="/template6.png"
-              alt="Template 6"
-              className="h-64 w-auto m-5"
-            />
-
-            {/* Repeat images or use real content */}
+      <div className="scroll-smooth">
+        <Navbar />
+        <main className="pt-2 ">
+          <HeroSection />
+          <ScrollingResumes />
+          <div className="flex justify-center items-center m-20">
+            <button className=" m-5 p-2 justify-around bg-blue-600 text-white text-bold  hover:bg-white hover:text-blue-600 hover:border-blue-600 hover:border-2  self-center ">
+              <a href="">Browse Templates</a>
+            </button>
           </div>
-        </div>
-      </main>
+
+          <ATSFeatures />
+          <Corrections />
+          <Testimonials />
+          <JobDescription />
+          <TemplateSections />
+          <AboutSection />
+          <Footer />
+        </main>
+      </div>
     </>
   );
 }

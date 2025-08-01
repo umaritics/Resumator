@@ -12,6 +12,9 @@ const lexend = Lexend_Deca({
 export const metadata = {
   title: "Resumator",
   description: "Tailor your resume for any job.",
+  icons: {
+    icon: "/logo.ico",
+  },
 };
 
 export default function RootLayout({

@@ -14,16 +14,16 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Left: Logo + Name */}
           <div className="flex items-center space-x-2">
-            <Image
+            {/* <Image
               src="/logo.png"
               alt="Resumator Logo"
               width={36}
               height={36}
               priority
-            />
+            /> */}
             <Link
               href="/"
-              className="text-blue-600 text-3xl sm:text-4xl font-bold font-lexend"
+              className="text-blue-600 text-3xl sm:text-4xl font-bold font-ubuntu"
             >
               Resumator
             </Link>
@@ -37,8 +37,11 @@ export default function Navbar() {
             <Link href="/make" className="text-gray-700 hover:text-blue-600">
               Make Resume
             </Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600">
+            <Link href="#about" className="text-gray-700 hover:text-blue-600">
               About
+            </Link>
+            <Link href="#faq" className="text-gray-700 hover:text-blue-600">
+              FAQs
             </Link>
             <Link href="/contact" className="text-gray-700 hover:text-blue-600">
               Contact

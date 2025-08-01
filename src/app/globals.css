@@ -14,7 +14,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #ededed;
+    --background: #ffffff;
     --foreground: #171717;
   }
 }
@@ -25,8 +25,8 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 @layer base {
-  .font-ubuntu {
-    font-family: "Ubuntu", sans-serif;
+  .font-lexend {
+    font-family: "Lexend", sans-serif;
   }
 }
 @keyframes scroll {
@@ -40,4 +40,7 @@ body {
 
 .animate-scroll {
   animation: scroll 30s linear infinite;
+}
+html {
+  scroll-behavior: smooth;
 }
