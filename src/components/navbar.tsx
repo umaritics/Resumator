@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-
+import { div } from "framer-motion/client";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -34,8 +33,17 @@ export default function Navbar() {
             <Link href="/" className="text-gray-700 hover:text-blue-600">
               Home
             </Link>
-            <Link href="/make" className="text-gray-700 hover:text-blue-600">
+            <Link
+              href="/resume-maker"
+              className="text-gray-700 hover:text-blue-600"
+            >
               Make Resume
+            </Link>
+            <Link href="/make" className="text-gray-700 hover:text-blue-600">
+              Cover Letter
+            </Link>
+            <Link href="/make" className="text-gray-700 hover:text-blue-600">
+              Resume Score
             </Link>
             <Link href="#about" className="text-gray-700 hover:text-blue-600">
               About

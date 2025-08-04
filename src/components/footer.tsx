@@ -3,7 +3,7 @@ import { Mail, Github, Linkedin, Twitter } from "lucide-react";
 export default function Footer() {
   return (
     <footer className="bg-blue-950 text-white px-6 py-18 pb-0">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
         {/* Resumator Info */}
         <div>
           <h3 className="text-xl font-semibold mb-4">Resumator</h3>
