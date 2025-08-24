@@ -313,7 +313,9 @@ const ResumeMakerForm = () => {
                 {resumeData.experiences.map((exp, index) => (
                   <div key={index} className="flex gap-2 items-start mt-2">
                     <Textarea
-                      placeholder={`Experience ${index + 1}`}
+                      placeholder={`Experience ${
+                        index + 1
+                      } - (Job type, company, duration, description)`}
                       value={exp}
                       onChange={(e) =>
                         handleListChange("experiences", index, e.target.value)
@@ -345,7 +347,9 @@ const ResumeMakerForm = () => {
                   <div key={index} className="flex gap-2 items-start mt-2">
                     <Textarea
                       className="mt-2"
-                      placeholder={`Education ${index + 1}`}
+                      placeholder={`Education ${
+                        index + 1
+                      } - (Degree, Institution, Year)`}
                       value={edu}
                       onChange={(e) =>
                         handleListChange("education", index, e.target.value)
