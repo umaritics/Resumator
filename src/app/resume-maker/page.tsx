@@ -8,18 +8,50 @@ import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import dynamic from "next/dynamic";
+import {
+  TemplateClassic,
+  TemplateElegant,
+  TemplateCorporate,
+  TemplateCreative,
+} from "@/components/resumeTemplates";
 
 const Player = dynamic(
   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
   { ssr: false }
 );
-
+const dummyData = {
+  name: "John Doe",
+  title: "Software Engineer",
+  summary: "Experienced developer...",
+  contact: {
+    phone: "123-456-7890",
+    address: "New York, NY",
+    email: "john@example.com",
+    linkedin: "linkedin.com/in/johndoe",
+    github: "github.com/johndoe",
+  },
+  experiences: [
+    "Software Engineer | Tech Co | 2020-Present | Built amazing things",
+  ],
+  education: ["BS Computer Science | University of Tech | 2019"],
+  projects: ["Portfolio Website | React, Next.js | A cool website"],
+  skills: ["React", "TypeScript", "Node.js"],
+  languages: ["English", "Spanish"],
+  additional: {
+    certifications: [],
+    awards: [],
+    otherSkills: [],
+  },
+};
 const ResumeMakerForm = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedResumeFile, setUploadedResumeFile] = useState<File | null>(
     null
   );
+  const [selectedTemplate, setSelectedTemplate] = useState<
+    "classic" | "elegant" | "corporate" | "creative"
+  >("classic");
   const [currentStep, setCurrentStep] = useState<
     "ask" | "upload" | "template" | "form"
   >("ask");
@@ -225,7 +257,7 @@ const ResumeMakerForm = () => {
           },
         }));
 
-        setCurrentStep("form");
+        setCurrentStep("template");
       }
     } catch (error) {
       console.error("Upload error:", error);
@@ -316,17 +348,121 @@ const ResumeMakerForm = () => {
 
           {/* TEMPLATE STEP */}
           {currentStep === "template" && (
-            <div className="flex flex-col items-center gap-4">
-              <h2 className="text-lg font-medium">Select a Resume Template</h2>
-              <div className="flex gap-4">
-                <Button onClick={() => setCurrentStep("form")}>
-                  Template 1
-                </Button>
-                <Button onClick={() => setCurrentStep("form")}>
-                  Template 2
-                </Button>
+            <div className="w-full max-w-5xl flex flex-col items-center gap-8 animate-in fade-in duration-500">
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-bold text-gray-800">
+                  Choose your look
+                </h2>
+                <p className="text-gray-500">
+                  Select a template to visualize your resume
+                </p>
               </div>
-              <Button variant="ghost" onClick={() => setCurrentStep("ask")}>
+
+              {/* Grid: 2 Columns for Large, Clear Previews */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 w-full px-4">
+                {/* --- CLASSIC --- */}
+                <div
+                  className={`group relative aspect-[210/297] w-full rounded-xl border-2 cursor-pointer overflow-hidden transition-all hover:shadow-2xl hover:scale-[1.02] ${
+                    selectedTemplate === "classic"
+                      ? "border-blue-600 ring-4 ring-blue-100"
+                      : "border-gray-200"
+                  }`}
+                  onClick={() => {
+                    setSelectedTemplate("classic");
+                    setCurrentStep("form");
+                  }}
+                >
+                  <img
+                    src="/template-classic.png"
+                    alt="Classic Template"
+                    className="w-full h-full object-cover object-top"
+                  />
+                  {/* Label Overlay */}
+                  <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4 pt-10 flex justify-center">
+                    <span className="text-white font-semibold tracking-wide">
+                      Classic
+                    </span>
+                  </div>
+                </div>
+
+                {/* --- ELEGANT --- */}
+                <div
+                  className={`group relative aspect-[210/297] w-full rounded-xl border-2 cursor-pointer overflow-hidden transition-all hover:shadow-2xl hover:scale-[1.02] ${
+                    selectedTemplate === "elegant"
+                      ? "border-blue-600 ring-4 ring-blue-100"
+                      : "border-gray-200"
+                  }`}
+                  onClick={() => {
+                    setSelectedTemplate("elegant");
+                    setCurrentStep("form");
+                  }}
+                >
+                  <img
+                    src="/template-elegant.png"
+                    alt="Elegant Template"
+                    className="w-full h-full object-cover object-top"
+                  />
+                  <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4 pt-10 flex justify-center">
+                    <span className="text-white font-semibold tracking-wide">
+                      Elegant
+                    </span>
+                  </div>
+                </div>
+
+                {/* --- CORPORATE --- */}
+                <div
+                  className={`group relative aspect-[210/297] w-full rounded-xl border-2 cursor-pointer overflow-hidden transition-all hover:shadow-2xl hover:scale-[1.02] ${
+                    selectedTemplate === "corporate"
+                      ? "border-blue-600 ring-4 ring-blue-100"
+                      : "border-gray-200"
+                  }`}
+                  onClick={() => {
+                    setSelectedTemplate("corporate");
+                    setCurrentStep("form");
+                  }}
+                >
+                  <img
+                    src="/template-corporate.png"
+                    alt="Corporate Template"
+                    className="w-full h-full object-cover object-top"
+                  />
+                  <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4 pt-10 flex justify-center">
+                    <span className="text-white font-semibold tracking-wide">
+                      Corporate
+                    </span>
+                  </div>
+                </div>
+
+                {/* --- CREATIVE --- */}
+                <div
+                  className={`group relative aspect-[210/297] w-full rounded-xl border-2 cursor-pointer overflow-hidden transition-all hover:shadow-2xl hover:scale-[1.02] ${
+                    selectedTemplate === "creative"
+                      ? "border-blue-600 ring-4 ring-blue-100"
+                      : "border-gray-200"
+                  }`}
+                  onClick={() => {
+                    setSelectedTemplate("creative");
+                    setCurrentStep("form");
+                  }}
+                >
+                  <img
+                    src="/template-creative.png"
+                    alt="Creative Template"
+                    className="w-full h-full object-cover object-top"
+                  />
+                  <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4 pt-10 flex justify-center">
+                    <span className="text-white font-semibold tracking-wide">
+                      Creative
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep("ask")}
+                className="mt-4"
+              >
                 Back
               </Button>
             </div>
