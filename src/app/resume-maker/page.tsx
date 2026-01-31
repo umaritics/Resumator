@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useReactToPrint } from "react-to-print";
 import { useRef } from "react";
 import {
@@ -426,7 +427,7 @@ const ResumeMakerForm = () => {
                     setCurrentStep("form");
                   }}
                 >
-                  <img
+                  <Image
                     src="/template-classic.png"
                     alt="Classic Template"
                     className="w-full h-full object-cover object-top"
@@ -451,7 +452,7 @@ const ResumeMakerForm = () => {
                     setCurrentStep("form");
                   }}
                 >
-                  <img
+                  <Image
                     src="/template-elegant.png"
                     alt="Elegant Template"
                     className="w-full h-full object-cover object-top"
@@ -475,7 +476,7 @@ const ResumeMakerForm = () => {
                     setCurrentStep("form");
                   }}
                 >
-                  <img
+                  <Image
                     src="/template-corporate.png"
                     alt="Corporate Template"
                     className="w-full h-full object-cover object-top"
@@ -499,7 +500,7 @@ const ResumeMakerForm = () => {
                     setCurrentStep("form");
                   }}
                 >
-                  <img
+                  <Image
                     src="/template-creative.png"
                     alt="Creative Template"
                     className="w-full h-full object-cover object-top"
@@ -551,7 +552,7 @@ const ResumeMakerForm = () => {
                     }
                   />
                   {resumeData.profilePic && (
-                    <img
+                    <Image
                       src={URL.createObjectURL(resumeData.profilePic)}
                       alt="Profile Preview"
                       className="mt-4 w-32 h-32 object-cover rounded-full border"
