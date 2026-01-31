@@ -36,9 +36,11 @@ export async function POST(req: NextRequest) {
       
       RULES:
       1. Return ONLY valid JSON.
-      2. Do NOT use markdown code blocks (no \`\`\`json).
+      2. Do NOT use markdown code blocks.
       3. If a field is missing, use an empty string "" or empty array [].
-      
+      4. For "projects", extract the project name, tech stack used, and description. Format it exactly as "Name | Tech Stack | Date/Link | Description".
+      5. Remove any citation markers like or from the content.
+
       JSON SCHEMA:
       {
         "name": "string",
@@ -49,11 +51,14 @@ export async function POST(req: NextRequest) {
           "address": "string",
           "email": "string",
           "linkedin": "string",
-          "github": "string"
+          "github": "string",
+          "website": "string"
         },
-        "experiences": ["string (Role at Company | Date | Details)"],
-        "education": ["string"],
+        "experiences": ["string (Role | Company | Date | Details)"],
+        "education": ["string (Degree | Institution | Date)"],
+        "projects": ["string (Name | Tech Stack | Date/Link | Description)"], 
         "skills": ["string"],
+        "languages": ["string"],
         "additional": {
           "certifications": ["string"],
           "awards": ["string"],
@@ -91,7 +96,7 @@ export async function POST(req: NextRequest) {
     // Return the actual error message for debugging
     return NextResponse.json(
       { error: (error as Error).message || "Failed to parse resume" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

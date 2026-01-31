@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import dynamic from "next/dynamic";
+import { useReactToPrint } from "react-to-print";
+import { useRef } from "react";
 import {
   TemplateClassic,
   TemplateElegant,
@@ -17,7 +19,7 @@ import {
 
 const Player = dynamic(
   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
-  { ssr: false }
+  { ssr: false },
 );
 const dummyData = {
   name: "John Doe",
@@ -47,13 +49,13 @@ const ResumeMakerForm = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedResumeFile, setUploadedResumeFile] = useState<File | null>(
-    null
+    null,
   );
   const [selectedTemplate, setSelectedTemplate] = useState<
     "classic" | "elegant" | "corporate" | "creative"
   >("classic");
   const [currentStep, setCurrentStep] = useState<
-    "ask" | "upload" | "template" | "form"
+    "ask" | "upload" | "template" | "form" | "preview"
   >("ask");
 
   // --- UPDATED STATE MODEL ---
@@ -82,7 +84,16 @@ const ResumeMakerForm = () => {
     },
     profilePic: null as File | null,
   });
+  const [isGenerating, setIsGenerating] = useState(false);
 
+  // Ref for the print component
+  const printRef = useRef<HTMLDivElement>(null);
+
+  // Hook for printing
+  const handlePrint = useReactToPrint({
+    contentRef: printRef, // Updated hook syntax for v3+
+    documentTitle: `${resumeData.name || "Resume"}`,
+  });
   // 1. Load data
   useEffect(() => {
     const savedData = localStorage.getItem("resumeData");
@@ -267,8 +278,33 @@ const ResumeMakerForm = () => {
     }
   };
 
-  const handleSubmit = () => {
-    console.log("Resume Data Submitted:", resumeData);
+  const handleSubmit = async () => {
+    setIsGenerating(true);
+    try {
+      // 1. Send data to AI for polishing
+      const response = await fetch("/api/enhance-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeData }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.data) {
+        // 2. Update state with the polished version
+        setResumeData(result.data);
+        // 3. Move to Preview Step
+        setCurrentStep("preview");
+      } else {
+        throw new Error("Failed to enhance");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("AI enhancement failed. Using your original data.");
+      setCurrentStep("preview"); // Fallback to preview anyway
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   if (!isLoaded)
@@ -277,6 +313,24 @@ const ResumeMakerForm = () => {
         Loading...
       </div>
     );
+  if (isGenerating) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <Player
+          autoplay
+          loop
+          src="/animations/resume-maker-animation.json"
+          className="w-60 h-60"
+        />
+        <h2 className="text-2xl font-bold text-blue-600 mt-4 animate-pulse">
+          Polishing your resume...
+        </h2>
+        <p className="text-gray-500 mt-2">
+          Optimizing grammar, action verbs, and formatting.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-6 mx-auto">
@@ -754,7 +808,7 @@ const ResumeMakerForm = () => {
                         handleListChange(
                           "certifications",
                           index,
-                          e.target.value
+                          e.target.value,
                         )
                       }
                     />
@@ -812,6 +866,57 @@ const ResumeMakerForm = () => {
               </div>
             </Card>
           </>
+        )}
+
+        {/* PREVIEW & DOWNLOAD STEP */}
+        {currentStep === "preview" && (
+          <div className="w-full flex flex-col items-center gap-6 pb-10 mt-10">
+            <div className="flex flex-col items-center gap-2 text-center">
+              <h1 className="text-3xl font-bold text-gray-800">
+                Your Resume is Ready!
+              </h1>
+              <p className="text-gray-500">
+                Review the AI-polished version below.
+              </p>
+            </div>
+
+            <div className="flex gap-4 sticky top-4 z-50 bg-white/80 backdrop-blur p-2 rounded-md shadow-lg border">
+              <Button
+                onClick={() => handlePrint()}
+                className="bg-green-600 hover:bg-green-700 font-bold px-8 shadow-md"
+              >
+                Download PDF
+              </Button>
+              <Button variant="outline" onClick={() => setCurrentStep("form")}>
+                Edit Data
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setCurrentStep("template")}
+              >
+                Change Template
+              </Button>
+            </div>
+
+            {/* THE RESUME PREVIEW (Hidden wrapper for Print) */}
+            <div className="overflow-auto w-full flex justify-center bg-gray-100 p-8 rounded-lg border border-gray-200">
+              {/* This div is what gets printed */}
+              <div ref={printRef} className="bg-white shadow-2xl">
+                {selectedTemplate === "classic" && (
+                  <TemplateClassic data={resumeData} />
+                )}
+                {selectedTemplate === "elegant" && (
+                  <TemplateElegant data={resumeData} />
+                )}
+                {selectedTemplate === "corporate" && (
+                  <TemplateCorporate data={resumeData} />
+                )}
+                {selectedTemplate === "creative" && (
+                  <TemplateCreative data={resumeData} />
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </div>
       <div className="mt-6 w-full">

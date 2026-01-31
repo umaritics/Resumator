@@ -43,7 +43,14 @@ interface TemplateProps {
 
 // --- HELPER: Parse "Role | Company | Date | Desc" strings ---
 const parseListString = (str: string) => {
+  // 1. Safety Check: If str is empty, null, or not a string, return defaults
+  if (!str || typeof str !== "string") {
+    return { title: "", subtitle: "", date: "", description: "" };
+  }
+
+  // 2. Safe to split now
   const parts = str.split("|").map((s) => s.trim());
+
   return {
     title: parts[0] || "",
     subtitle: parts[1] || "",
