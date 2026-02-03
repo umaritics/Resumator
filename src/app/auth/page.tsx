@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +10,7 @@ import { useRouter } from "next/navigation";
 
 const AuthPage = () => {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  //   const router = useRouter();
 
   // login / signup handler
   const handleAuth = async (
@@ -25,32 +24,32 @@ const AuthPage = () => {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    if (type === "login") {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) alert(error.message);
-      else router.push("/"); // go back to landing page
-    } else {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-      if (error) alert(error.message);
-      else router.push("/");
-    }
+    // if (type === "login") {
+    //   const { error } = await supabase.auth.signInWithPassword({
+    //     email,
+    //     password,
+    //   });
+    //   if (error) alert(error.message);
+    //   else router.push("/"); // go back to landing page
+    // } else {
+    //   const { error } = await supabase.auth.signUp({
+    //     email,
+    //     password,
+    //   });
+    //   if (error) alert(error.message);
+    //   else router.push("/");
+    // }
 
     setLoading(false);
   };
 
   // google auth
-  const handleGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-    });
-    if (error) alert(error.message);
-  };
+  //   const handleGoogle = async () => {
+  //     const { error } = await supabase.auth.signInWithOAuth({
+  //       provider: "google",
+  //     });
+  //     if (error) alert(error.message);
+  //   };
 
   return (
     <div
@@ -71,7 +70,7 @@ const AuthPage = () => {
           {/* Google Login */}
           <Button
             type="button"
-            onClick={handleGoogle}
+            // onClick={handleGoogle}
             className="w-full bg-red-500 hover:bg-red-600 text-white mb-5"
           >
             Sign in with Google

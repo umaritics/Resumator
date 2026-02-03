@@ -3,46 +3,44 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
-import { User } from "@supabase/supabase-js";
 import ProfileDropdown from "./ProfileDropdown";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  // const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch user + subscribe to auth changes
-  useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
+  // // ✅ Fetch user + subscribe to auth changes
+  // useEffect(() => {
+  //   const getUser = async () => {
+  //     const {
+  //       data: { session },
+  //       error,
+  //     } = await supabase.auth.getSession();
 
-      if (error) console.error("Error fetching session:", error);
+  //     if (error) console.error("Error fetching session:", error);
 
-      setUser(session?.user ?? null);
-      setLoading(false);
-    };
-    getUser();
+  //     setUser(session?.user ?? null);
+  //     setLoading(false);
+  //   };
+  //   getUser();
 
-    // ✅ Listen for auth state changes
-    const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
+  //   // ✅ Listen for auth state changes
+  //   const { data: subscription } = supabase.auth.onAuthStateChange(
+  //     (_event, session) => {
+  //       setUser(session?.user ?? null);
+  //       setLoading(false);
+  //     }
+  //   );
 
-    return () => {
-      subscription.subscription.unsubscribe();
-    };
-  }, []);
+  //   return () => {
+  //     subscription.subscription.unsubscribe();
+  //   };
+  // }, []);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
+  // const handleLogout = async () => {
+  //   await supabase.auth.signOut();
+  // };
 
   return (
     <nav className="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
@@ -88,7 +86,7 @@ export default function Navbar() {
 
           {/* Right: Auth/Profile (Desktop Only) */}
           <div className="hidden md:flex items-center">
-            {!loading &&
+            {/* {!loading &&
               (user ? (
                 <ProfileDropdown /> // ✅ Only when logged in
               ) : (
@@ -98,7 +96,7 @@ export default function Navbar() {
                 >
                   Sign Up / Login
                 </Link>
-              ))}
+              ))} */}
           </div>
 
           {/* Mobile: Hamburger */}
@@ -145,7 +143,7 @@ export default function Navbar() {
             Contact
           </Link>
 
-          {!loading &&
+          {/* {!loading &&
             (user ? (
               <div className="mt-2 border-t pt-2">
                 <Link
@@ -155,7 +153,7 @@ export default function Navbar() {
                   Profile
                 </Link>
                 <button
-                  onClick={handleLogout}
+                  // onClick={handleLogout}
                   className="w-full text-left py-2 text-gray-700 hover:text-blue-600"
                 >
                   Logout
@@ -168,7 +166,7 @@ export default function Navbar() {
               >
                 Sign Up / Login
               </Link>
-            ))}
+            ))} */}
         </div>
       )}
     </nav>
