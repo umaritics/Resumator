@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 // Dynamically import the Lottie Player with SSR disabled
 const Player = dynamic(
   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
-  { ssr: false }
+  { ssr: false },
 );
 
 const HeroSection = () => {
@@ -18,7 +18,7 @@ const HeroSection = () => {
           Tailor your resume with{" "}
           <span className="text-blue-600">Resumator</span>.
         </h1>
-        <div className="mt-10 self-center justify-between flex flex-col md:flex-row items-center mt-6 space-y-4 md:space-y-0 md:space-x-4">
+        <div className="self-center justify-between flex flex-col md:flex-row items-center mt-6 space-y-4 md:space-y-0 md:space-x-4">
           <button className="mt-6 bg-blue-600 text-bold  text-white px-6 py-3 rounded-xl  text-lg hover:bg-blue-700 transition">
             Make Resume
           </button>

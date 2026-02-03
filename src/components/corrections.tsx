@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 export default function Corrections() {
   return (
     <section className="py-20 px-6 md:px-20 bg-[#f6f9fc] flex flex-col md:flex-row justify-center items-center gap-12">
@@ -21,7 +21,7 @@ export default function Corrections() {
 
       {/* Right Image with Boxes */}
       <div className="relative w-[300px] h-[400px]">
-        <img
+        <Image
           src="/resume-image.jpg"
           alt="Resume Example"
           className="w-full h-full object-cover rounded-xl shadow-xl"
