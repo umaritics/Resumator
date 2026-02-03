@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { ResumeScaler } from "@/components/ResumeScaler";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import dynamic from "next/dynamic";
@@ -903,18 +904,20 @@ const ResumeMakerForm = () => {
             <div className="overflow-auto w-full flex justify-center bg-gray-100 p-8 rounded-lg border border-gray-200">
               {/* This div is what gets printed */}
               <div ref={printRef} className="bg-white shadow-2xl">
-                {selectedTemplate === "classic" && (
-                  <TemplateClassic data={resumeData} />
-                )}
-                {selectedTemplate === "elegant" && (
-                  <TemplateElegant data={resumeData} />
-                )}
-                {selectedTemplate === "corporate" && (
-                  <TemplateCorporate data={resumeData} />
-                )}
-                {selectedTemplate === "creative" && (
-                  <TemplateCreative data={resumeData} />
-                )}
+                <ResumeScaler>
+                  {selectedTemplate === "classic" && (
+                    <TemplateClassic data={resumeData} />
+                  )}
+                  {selectedTemplate === "elegant" && (
+                    <TemplateElegant data={resumeData} />
+                  )}
+                  {selectedTemplate === "corporate" && (
+                    <TemplateCorporate data={resumeData} />
+                  )}
+                  {selectedTemplate === "creative" && (
+                    <TemplateCreative data={resumeData} />
+                  )}
+                </ResumeScaler>
               </div>
             </div>
           </div>
