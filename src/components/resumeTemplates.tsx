@@ -11,6 +11,12 @@ import {
 } from "lucide-react";
 
 // --- TYPES ---
+interface ListData {
+  title: string;
+  subtitle: string;
+  date: string;
+  description?: string;
+}
 interface ResumeData {
   name: string;
   title: string;
@@ -23,9 +29,9 @@ interface ResumeData {
     github: string;
     website?: string;
   };
-  experiences: string[];
-  education: string[];
-  projects: string[]; // Added Projects
+  experiences: ListData[];
+  education: ListData[];
+  projects: ListData[];
   skills: string[];
   languages: string[]; // Added Languages
   additional: {
@@ -87,78 +93,65 @@ export const TemplateClassic: React.FC<TemplateProps> = ({ data }) => {
       )}
 
       {/* Experience */}
-      {data.experiences?.length > 0 && data.experiences[0] !== "" && (
+      {data.experiences?.length > 0 && (
         <section className="mb-4">
           <h2 className="text-lg font-bold border-b border-black mb-2 uppercase">
             Experience
           </h2>
           <div className="space-y-3">
-            {data.experiences.map((exp, i) => {
-              const { title, subtitle, date, description } =
-                parseListString(exp);
-              return (
-                <div key={i}>
-                  <div className="flex justify-between font-bold text-sm">
-                    <span>
-                      {title}
-                      {subtitle ? `, ${subtitle}` : ""}
-                    </span>
-                    <span>{date}</span>
-                  </div>
-                  <p className="text-sm mt-1 text-gray-800">{description}</p>
+            {data.experiences.map((exp, i) => (
+              <div key={i}>
+                <div className="flex justify-between font-bold text-sm">
+                  <span>
+                    {exp.title}
+                    {exp.subtitle ? `, ${exp.subtitle}` : ""}
+                  </span>
+                  <span>{exp.date}</span>
                 </div>
-              );
-            })}
+                <p className="text-sm mt-1 text-gray-800">{exp.description}</p>
+              </div>
+            ))}
           </div>
         </section>
       )}
 
       {/* Projects (Dynamic Section) */}
-      {data.projects?.length > 0 && data.projects[0] !== "" && (
+      {data.projects?.length > 0 && (
         <section className="mb-4">
           <h2 className="text-lg font-bold border-b border-black mb-2 uppercase">
             Projects
           </h2>
           <div className="space-y-3">
-            {data.projects.map((proj, i) => {
-              const { title, subtitle, date, description } =
-                parseListString(proj);
-              return (
-                <div key={i}>
-                  <div className="flex justify-between font-bold text-sm">
-                    <span>
-                      {title}{" "}
-                      <span className="font-normal italic text-gray-600">
-                        {subtitle}
-                      </span>
-                    </span>
-                    {date && <span>{date}</span>}
-                  </div>
-                  <p className="text-sm mt-1">{description}</p>
+            {data.projects.map((proj, i) => (
+              <div key={i} className="relative">
+                <span className="absolute -left-[31px] top-1 w-3 h-3 bg-[#5dbaa9] rounded-full"></span>
+                {/* Access the object properties directly */}
+                <h4 className="font-bold text-md">{proj.title}</h4>
+                <div className="text-xs italic text-gray-500 mb-1">
+                  {proj.subtitle}
                 </div>
-              );
-            })}
+                <p className="text-sm text-gray-600">{proj.description}</p>
+              </div>
+            ))}
           </div>
         </section>
       )}
 
       {/* Education */}
-      {data.education?.length > 0 && data.education[0] !== "" && (
+      {data.education?.length > 0 && (
         <section className="mb-4">
           <h2 className="text-lg font-bold border-b border-black mb-2 uppercase">
             Education
           </h2>
-          {data.education.map((edu, i) => {
-            const { title, subtitle, date } = parseListString(edu);
-            return (
-              <div key={i} className="flex justify-between text-sm mb-1">
-                <div>
-                  <span className="font-bold">{title}</span>, {subtitle}
-                </div>
-                <span>{date}</span>
+          {data.education?.length > 0 &&
+            data.education.map((edu, i) => (
+              <div key={i} className="mb-4">
+                {/* Access the object properties directly */}
+                <div className="font-bold text-sm">{edu.title}</div>
+                <div className="text-xs text-gray-500 mb-1">{edu.subtitle}</div>
+                <div className="text-xs text-[#5dbaa9]">{edu.date}</div>
               </div>
-            );
-          })}
+            ))}
         </section>
       )}
 
@@ -237,16 +230,17 @@ export const TemplateElegant: React.FC<TemplateProps> = ({ data }) => {
             <h3 className="text-[#8b7d5b] font-bold tracking-widest uppercase mb-3">
               Education
             </h3>
-            {data.education.map((edu, i) => {
-              const { title, subtitle, date } = parseListString(edu);
-              return (
-                <div key={i} className="mb-3">
-                  <div className="font-bold">{title}</div>
-                  <div className="italic">{subtitle}</div>
-                  <div className="text-xs text-gray-500">{date}</div>
+            {data.education?.length > 0 &&
+              data.education.map((edu, i) => (
+                <div key={i} className="mb-4">
+                  {/* Access the object properties directly */}
+                  <div className="font-bold text-sm">{edu.title}</div>
+                  <div className="text-xs text-gray-500 mb-1">
+                    {edu.subtitle}
+                  </div>
+                  <div className="text-xs text-[#5dbaa9]">{edu.date}</div>
                 </div>
-              );
-            })}
+              ))}
           </div>
         )}
 
@@ -280,53 +274,42 @@ export const TemplateElegant: React.FC<TemplateProps> = ({ data }) => {
               Work Experience
             </h3>
             <div className="space-y-6">
-              {data.experiences.map((exp, i) => {
-                const { title, subtitle, date, description } =
-                  parseListString(exp);
-                return (
-                  <div key={i}>
-                    <div className="flex justify-between items-baseline mb-1">
-                      <h4 className="font-bold text-[#b08d55] uppercase text-sm">
-                        {title}
-                      </h4>
-                      <span className="text-xs font-serif italic text-gray-500">
-                        {date}
-                      </span>
-                    </div>
-                    <div className="font-serif font-semibold text-sm mb-2">
-                      {subtitle}
-                    </div>
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {description}
-                    </p>
+              {data.experiences.map((exp, i) => (
+                <div key={i}>
+                  <div className="flex justify-between font-bold text-sm">
+                    <span>
+                      {exp.title}
+                      {exp.subtitle ? `, ${exp.subtitle}` : ""}
+                    </span>
+                    <span>{exp.date}</span>
                   </div>
-                );
-              })}
+                  <p className="text-sm mt-1 text-gray-800">
+                    {exp.description}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {/* Projects */}
-        {data.projects?.length > 0 && data.projects[0] !== "" && (
+        {data.projects?.length > 0 && (
           <div className="mb-8">
             <h3 className="text-[#8b7d5b] font-serif font-bold tracking-widest uppercase mb-4">
               Projects
             </h3>
             <div className="space-y-6">
-              {data.projects.map((proj, i) => {
-                const { title, subtitle, description } = parseListString(proj);
-                return (
-                  <div key={i}>
-                    <div className="font-bold text-[#b08d55] uppercase text-sm">
-                      {title}
-                    </div>
-                    <div className="text-xs italic mb-1">{subtitle}</div>
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {description}
-                    </p>
+              {data.projects.map((proj, i) => (
+                <div key={i} className="relative">
+                  <span className="absolute -left-[31px] top-1 w-3 h-3 bg-[#5dbaa9] rounded-full"></span>
+                  {/* Access the object properties directly */}
+                  <h4 className="font-bold text-md">{proj.title}</h4>
+                  <div className="text-xs italic text-gray-500 mb-1">
+                    {proj.subtitle}
                   </div>
-                );
-              })}
+                  <p className="text-sm text-gray-600">{proj.description}</p>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -393,19 +376,18 @@ export const TemplateCorporate: React.FC<TemplateProps> = ({ data }) => {
       <div className="mb-6">
         <SectionHeader title="Work History" />
         <div className="px-4 space-y-6">
-          {data.experiences.map((exp, i) => {
-            const { title, subtitle, date, description } = parseListString(exp);
-            return (
-              <div key={i} className="grid grid-cols-[1fr_3fr] gap-4">
-                <div>
-                  <div className="text-xs text-gray-500 font-bold">{date}</div>
-                  <div className="font-bold text-sm">{title}</div>
-                  <div className="text-xs">{subtitle}</div>
-                </div>
-                <div className="text-sm">{description}</div>
+          {data.experiences.map((exp, i) => (
+            <div key={i}>
+              <div className="flex justify-between font-bold text-sm">
+                <span>
+                  {exp.title}
+                  {exp.subtitle ? `, ${exp.subtitle}` : ""}
+                </span>
+                <span>{exp.date}</span>
               </div>
-            );
-          })}
+              <p className="text-sm mt-1 text-gray-800">{exp.description}</p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -413,17 +395,15 @@ export const TemplateCorporate: React.FC<TemplateProps> = ({ data }) => {
       <div className="mb-6">
         <SectionHeader title="Education" />
         <div className="px-4">
-          {data.education.map((edu, i) => {
-            const { title, subtitle, date } = parseListString(edu);
-            return (
-              <div key={i} className="mb-2">
-                <div className="text-xs font-bold text-gray-500">{date}</div>
-                <div className="font-bold text-sm">
-                  {title}: {subtitle}
-                </div>
+          {data.education?.length > 0 &&
+            data.education.map((edu, i) => (
+              <div key={i} className="mb-4">
+                {/* Access the object properties directly */}
+                <div className="font-bold text-sm">{edu.title}</div>
+                <div className="text-xs text-gray-500 mb-1">{edu.subtitle}</div>
+                <div className="text-xs text-[#5dbaa9]">{edu.date}</div>
               </div>
-            );
-          })}
+            ))}
         </div>
       </div>
     </div>
@@ -480,28 +460,25 @@ export const TemplateCreative: React.FC<TemplateProps> = ({ data }) => {
               Work Experience
             </h3>
             <div className="border-l-2 border-gray-200 ml-3 pl-6 space-y-8">
-              {data.experiences.map((exp, i) => {
-                const { title, subtitle, date, description } =
-                  parseListString(exp);
-                return (
-                  <div key={i} className="relative">
-                    <span className="absolute -left-[31px] top-1 w-3 h-3 bg-[#5dbaa9] rounded-full"></span>
-                    <h4 className="font-bold text-lg">{title}</h4>
-                    <div className="text-[#5dbaa9] font-medium text-sm mb-2">
-                      {subtitle}
-                    </div>
-                    <div className="text-xs text-gray-400 mb-2">{date}</div>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      {description}
-                    </p>
+              {data.experiences.map((exp, i) => (
+                <div key={i}>
+                  <div className="flex justify-between font-bold text-sm">
+                    <span>
+                      {exp.title}
+                      {exp.subtitle ? `, ${exp.subtitle}` : ""}
+                    </span>
+                    <span>{exp.date}</span>
                   </div>
-                );
-              })}
+                  <p className="text-sm mt-1 text-gray-800">
+                    {exp.description}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Projects */}
-          {data.projects?.length > 0 && data.projects[0] !== "" && (
+          {data.projects?.length > 0 && (
             <div className="mb-8">
               <h3 className="text-[#2c3e50] font-bold text-xl uppercase flex items-center gap-2 mb-4">
                 <span className="p-1 bg-[#2c3e50] text-white rounded">
@@ -510,20 +487,17 @@ export const TemplateCreative: React.FC<TemplateProps> = ({ data }) => {
                 Projects
               </h3>
               <div className="border-l-2 border-gray-200 ml-3 pl-6 space-y-6">
-                {data.projects.map((proj, i) => {
-                  const { title, subtitle, description } =
-                    parseListString(proj);
-                  return (
-                    <div key={i} className="relative">
-                      <span className="absolute -left-[31px] top-1 w-3 h-3 bg-[#5dbaa9] rounded-full"></span>
-                      <h4 className="font-bold text-md">{title}</h4>
-                      <div className="text-xs italic text-gray-500 mb-1">
-                        {subtitle}
-                      </div>
-                      <p className="text-sm text-gray-600">{description}</p>
+                {data.projects.map((proj, i) => (
+                  <div key={i} className="relative">
+                    <span className="absolute -left-[31px] top-1 w-3 h-3 bg-[#5dbaa9] rounded-full"></span>
+                    {/* Access the object properties directly */}
+                    <h4 className="font-bold text-md">{proj.title}</h4>
+                    <div className="text-xs italic text-gray-500 mb-1">
+                      {proj.subtitle}
                     </div>
-                  );
-                })}
+                    <p className="text-sm text-gray-600">{proj.description}</p>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -572,16 +546,17 @@ export const TemplateCreative: React.FC<TemplateProps> = ({ data }) => {
               <h3 className="font-bold text-[#2c3e50] text-lg mb-4">
                 EDUCATION
               </h3>
-              {data.education.map((edu, i) => {
-                const { title, subtitle, date } = parseListString(edu);
-                return (
+              {data.education?.length > 0 &&
+                data.education.map((edu, i) => (
                   <div key={i} className="mb-4">
-                    <div className="font-bold text-sm">{title}</div>
-                    <div className="text-xs text-gray-500 mb-1">{subtitle}</div>
-                    <div className="text-xs text-[#5dbaa9]">{date}</div>
+                    {/* Access the object properties directly */}
+                    <div className="font-bold text-sm">{edu.title}</div>
+                    <div className="text-xs text-gray-500 mb-1">
+                      {edu.subtitle}
+                    </div>
+                    <div className="text-xs text-[#5dbaa9]">{edu.date}</div>
                   </div>
-                );
-              })}
+                ))}
             </div>
           </div>
         </div>

@@ -26,7 +26,7 @@ const HeroSection = () => {
             Get Your Resume Score
           </button>
         </div>
-        <h2 className="text-4xl md:text-4xl  mt-20 text-center font-bold leading-snug">
+        <h2 className="text-4xl md:text-4xl  mt-10 text-center font-bold leading-snug">
           Pick a template and build your resume in minutes!
         </h2>
       </div>

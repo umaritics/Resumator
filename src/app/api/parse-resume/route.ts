@@ -38,8 +38,8 @@ export async function POST(req: NextRequest) {
       1. Return ONLY valid JSON.
       2. Do NOT use markdown code blocks.
       3. If a field is missing, use an empty string "" or empty array [].
-      4. For "projects", extract the project name, tech stack used, and description. Format it exactly as "Name | Tech Stack | Date/Link | Description".
-      5. Remove any citation markers like or from the content.
+      4. Intelligently separate roles, companies, dates, and descriptions into the provided object fields.
+      5. Remove any citation markers from the content.
 
       JSON SCHEMA:
       {
@@ -54,9 +54,29 @@ export async function POST(req: NextRequest) {
           "github": "string",
           "website": "string"
         },
-        "experiences": ["string (Role | Company | Date | Details)"],
-        "education": ["string (Degree | Institution | Date)"],
-        "projects": ["string (Name | Tech Stack | Date/Link | Description)"], 
+        "experiences": [ 
+          { 
+            "title": "Job Title or Role", 
+            "subtitle": "Company Name", 
+            "date": "Date Range", 
+            "description": "Job Details" 
+          } 
+        ],
+        "education": [ 
+          { 
+            "title": "Degree", 
+            "subtitle": "Institution", 
+            "date": "Graduation Year or Range" 
+          } 
+        ],
+        "projects": [ 
+          { 
+            "title": "Project Name", 
+            "subtitle": "Tech Stack or Role", 
+            "date": "Date Range or Link", 
+            "description": "Project Description" 
+          } 
+        ], 
         "skills": ["string"],
         "languages": ["string"],
         "additional": {

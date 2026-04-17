@@ -24,6 +24,7 @@ export default function Corrections() {
         <Image
           src="/resume-image.jpg"
           alt="Resume Example"
+          fill
           className="w-full h-full object-cover rounded-xl shadow-xl"
         />
 

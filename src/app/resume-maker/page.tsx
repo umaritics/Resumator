@@ -74,9 +74,11 @@ const ResumeMakerForm = () => {
       github: "",
       website: "", // Portfolio URL is common
     },
-    experiences: [""],
-    education: [""],
-    projects: [""], // Crucial for devs
+    experiences: [{ title: "", subtitle: "", date: "", description: "" }],
+    education: [
+      { title: "", subtitle: "", date: "" }, // Education doesn't need a description
+    ],
+    projects: [{ title: "", subtitle: "", date: "", description: "" }],
     skills: [""],
     languages: [""], // Spoken languages
     additional: {
@@ -161,47 +163,90 @@ const ResumeMakerForm = () => {
     }
   };
 
+  // --- HANDLER FOR OBJECT LISTS ---
+  interface ObjectListItem {
+    title: string;
+    subtitle: string;
+    date: string;
+    description?: string;
+  }
+  const handleObjectListChange = (
+    field: "experiences" | "projects" | "education",
+    index: number,
+    key: "title" | "subtitle" | "date" | "description",
+    value: string,
+  ) => {
+    const updated = [...(resumeData[field] as ObjectListItem[])];
+    updated[index] = { ...updated[index], [key]: value };
+    setResumeData({ ...resumeData, [field]: updated });
+  };
+
   const addListItem = (field: ListField) => {
-    if (["certifications", "awards", "otherSkills"].includes(field)) {
+    if (
+      field === "certifications" ||
+      field === "awards" ||
+      field === "otherSkills"
+    ) {
       setResumeData({
         ...resumeData,
         additional: {
           ...resumeData.additional,
-          [field]: [
-            ...resumeData.additional[
-              field as keyof typeof resumeData.additional
-            ],
-            "",
-          ],
+          [field]: [...resumeData.additional[field], ""],
         },
       });
-    } else {
+    } else if (field === "experiences" || field === "projects") {
+      // Cast the field safely to satisfy TS indexing rules
+      const key = field as "experiences" | "projects";
       setResumeData({
         ...resumeData,
-        [field]: [
-          ...(resumeData[field as keyof typeof resumeData] as string[]),
-          "",
+        [key]: [
+          ...resumeData[key],
+          { title: "", subtitle: "", date: "", description: "" },
         ],
+      });
+    } else if (field === "education") {
+      setResumeData({
+        ...resumeData,
+        education: [
+          ...resumeData.education,
+          { title: "", subtitle: "", date: "" },
+        ],
+      });
+    } else if (field === "skills" || field === "languages") {
+      const key = field as "skills" | "languages";
+      setResumeData({
+        ...resumeData,
+        [key]: [...resumeData[key], ""],
       });
     }
   };
 
   const removeListItem = (field: ListField, index: number) => {
-    if (["certifications", "awards", "otherSkills"].includes(field)) {
-      const updated = [
-        ...resumeData.additional[field as keyof typeof resumeData.additional],
-      ];
+    if (
+      field === "certifications" ||
+      field === "awards" ||
+      field === "otherSkills"
+    ) {
+      const updated = [...resumeData.additional[field]];
       updated.splice(index, 1);
       setResumeData({
         ...resumeData,
         additional: { ...resumeData.additional, [field]: updated },
       });
-    } else {
-      const updated = [
-        ...(resumeData[field as keyof typeof resumeData] as string[]),
-      ];
+    } else if (field === "experiences" || field === "projects") {
+      const key = field as "experiences" | "projects";
+      const updated = [...resumeData[key]];
       updated.splice(index, 1);
-      setResumeData({ ...resumeData, [field]: updated });
+      setResumeData({ ...resumeData, [key]: updated });
+    } else if (field === "education") {
+      const updated = [...resumeData.education];
+      updated.splice(index, 1);
+      setResumeData({ ...resumeData, education: updated });
+    } else if (field === "skills" || field === "languages") {
+      const key = field as "skills" | "languages";
+      const updated = [...resumeData[key]];
+      updated.splice(index, 1);
+      setResumeData({ ...resumeData, [key]: updated });
     }
   };
 
@@ -431,6 +476,8 @@ const ResumeMakerForm = () => {
                   <Image
                     src="/template-classic.png"
                     alt="Classic Template"
+                    width={300}
+                    height={400}
                     className="w-full h-full object-cover object-top"
                   />
                   {/* Label Overlay */}
@@ -456,6 +503,8 @@ const ResumeMakerForm = () => {
                   <Image
                     src="/template-elegant.png"
                     alt="Elegant Template"
+                    width={300}
+                    height={400}
                     className="w-full h-full object-cover object-top"
                   />
                   <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4 pt-10 flex justify-center">
@@ -480,6 +529,8 @@ const ResumeMakerForm = () => {
                   <Image
                     src="/template-corporate.png"
                     alt="Corporate Template"
+                    width={300}
+                    height={400}
                     className="w-full h-full object-cover object-top"
                   />
                   <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4 pt-10 flex justify-center">
@@ -504,6 +555,8 @@ const ResumeMakerForm = () => {
                   <Image
                     src="/template-creative.png"
                     alt="Creative Template"
+                    width={300}
+                    height={400}
                     className="w-full h-full object-cover object-top"
                   />
                   <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4 pt-10 flex justify-center">
@@ -556,6 +609,8 @@ const ResumeMakerForm = () => {
                     <Image
                       src={URL.createObjectURL(resumeData.profilePic)}
                       alt="Profile Preview"
+                      width={32}
+                      height={32}
                       className="mt-4 w-32 h-32 object-cover rounded-full border"
                     />
                   )}
@@ -649,23 +704,69 @@ const ResumeMakerForm = () => {
                   Experiences
                 </h2>
                 {resumeData.experiences.map((exp, index) => (
-                  <div key={index} className="flex gap-2 items-start mt-2">
-                    <Textarea
-                      placeholder={`Experience ${
-                        index + 1
-                      } - (Role | Company | Date | Details)`}
-                      value={exp}
-                      onChange={(e) =>
-                        handleListChange("experiences", index, e.target.value)
-                      }
-                    />
-                    {/* ✅ REMOVE BUTTON ALWAYS VISIBLE */}
+                  <div
+                    key={index}
+                    className="relative p-4 border rounded-md bg-gray-50 mt-2 space-y-3"
+                  >
                     <Button
                       variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2 h-7 w-7 p-0 rounded-full"
                       onClick={() => removeListItem("experiences", index)}
                     >
                       ×
                     </Button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pr-8">
+                      <Input
+                        placeholder="Job Title (e.g. Data Entry Operator)"
+                        value={exp.title}
+                        onChange={(e) =>
+                          handleObjectListChange(
+                            "experiences",
+                            index,
+                            "title",
+                            e.target.value,
+                          )
+                        }
+                      />
+                      <Input
+                        placeholder="Company"
+                        value={exp.subtitle}
+                        onChange={(e) =>
+                          handleObjectListChange(
+                            "experiences",
+                            index,
+                            "subtitle",
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </div>
+                    <Input
+                      placeholder="Date (e.g. Nov 2025 - Present)"
+                      value={exp.date}
+                      onChange={(e) =>
+                        handleObjectListChange(
+                          "experiences",
+                          index,
+                          "date",
+                          e.target.value,
+                        )
+                      }
+                    />
+                    <Textarea
+                      placeholder="Job Details (Don't worry about perfect grammar, the AI will polish this!)"
+                      value={exp.description}
+                      onChange={(e) =>
+                        handleObjectListChange(
+                          "experiences",
+                          index,
+                          "description",
+                          e.target.value,
+                        )
+                      }
+                      className="h-24"
+                    />
                   </div>
                 ))}
                 <Button
@@ -675,27 +776,74 @@ const ResumeMakerForm = () => {
                   + Add Experience
                 </Button>
 
-                {/* --- PROJECTS (NEW) --- */}
+                {/* --- PROJECTS --- */}
                 <h2 className="text-xl text-blue-600 font-semibold mt-6">
                   Projects
                 </h2>
                 {resumeData.projects.map((proj, index) => (
-                  <div key={index} className="flex gap-2 items-start mt-2">
-                    <Textarea
-                      placeholder={`Project ${
-                        index + 1
-                      } - (Name | Tech Stack | Link | Description)`}
-                      value={proj}
-                      onChange={(e) =>
-                        handleListChange("projects", index, e.target.value)
-                      }
-                    />
+                  <div
+                    key={index}
+                    className="relative p-4 border rounded-md bg-gray-50 mt-2 space-y-3"
+                  >
                     <Button
                       variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2 h-7 w-7 p-0 rounded-full"
                       onClick={() => removeListItem("projects", index)}
                     >
                       ×
                     </Button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pr-8">
+                      <Input
+                        placeholder="Project Name"
+                        value={proj.title}
+                        onChange={(e) =>
+                          handleObjectListChange(
+                            "projects",
+                            index,
+                            "title",
+                            e.target.value,
+                          )
+                        }
+                      />
+                      <Input
+                        placeholder="Tech Stack / Role"
+                        value={proj.subtitle}
+                        onChange={(e) =>
+                          handleObjectListChange(
+                            "projects",
+                            index,
+                            "subtitle",
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </div>
+                    <Input
+                      placeholder="Date"
+                      value={proj.date}
+                      onChange={(e) =>
+                        handleObjectListChange(
+                          "projects",
+                          index,
+                          "date",
+                          e.target.value,
+                        )
+                      }
+                    />
+                    <Textarea
+                      placeholder="Project Description"
+                      value={proj.description}
+                      onChange={(e) =>
+                        handleObjectListChange(
+                          "projects",
+                          index,
+                          "description",
+                          e.target.value,
+                        )
+                      }
+                      className="h-20"
+                    />
                   </div>
                 ))}
                 <Button
@@ -710,22 +858,56 @@ const ResumeMakerForm = () => {
                   Education
                 </h2>
                 {resumeData.education.map((edu, index) => (
-                  <div key={index} className="flex gap-2 items-start mt-2">
-                    <Textarea
-                      placeholder={`Education ${
-                        index + 1
-                      } - (Degree | Institution | Year)`}
-                      value={edu}
-                      onChange={(e) =>
-                        handleListChange("education", index, e.target.value)
-                      }
-                    />
+                  <div
+                    key={index}
+                    className="relative p-4 border rounded-md bg-gray-50 mt-2 space-y-3"
+                  >
                     <Button
                       variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2 h-7 w-7 p-0 rounded-full"
                       onClick={() => removeListItem("education", index)}
                     >
                       ×
                     </Button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pr-8">
+                      <Input
+                        placeholder="Degree (e.g. BS Computer Science)"
+                        value={edu.title}
+                        onChange={(e) =>
+                          handleObjectListChange(
+                            "education",
+                            index,
+                            "title",
+                            e.target.value,
+                          )
+                        }
+                      />
+                      <Input
+                        placeholder="Institution"
+                        value={edu.subtitle}
+                        onChange={(e) =>
+                          handleObjectListChange(
+                            "education",
+                            index,
+                            "subtitle",
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </div>
+                    <Input
+                      placeholder="Graduation Year"
+                      value={edu.date}
+                      onChange={(e) =>
+                        handleObjectListChange(
+                          "education",
+                          index,
+                          "date",
+                          e.target.value,
+                        )
+                      }
+                    />
                   </div>
                 ))}
                 <Button
