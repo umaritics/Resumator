@@ -19,7 +19,10 @@ const HeroSection = () => {
           <span className="text-blue-600">Resumator</span>.
         </h1>
         <div className="self-center justify-between flex flex-col md:flex-row items-center mt-6 space-y-4 md:space-y-0 md:space-x-4">
-          <button className="mt-6 bg-blue-600 text-bold  text-white px-6 py-3 rounded-xl  text-lg hover:bg-blue-700 transition">
+          <button
+            className="mt-6 bg-blue-600 text-bold  text-white px-6 py-3 rounded-xl  text-lg hover:bg-blue-700 transition"
+            onClick={() => (window.location.href = "/resume-maker")}
+          >
             Make Resume
           </button>
           <button className="mt-6 bg-white text-bold  text-blue-600 px-6 py-3 rounded-xl  text-lg border border-blue-600 hover:bg-blue-600 hover:text-white transition">
