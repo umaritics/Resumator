@@ -48,7 +48,7 @@ Before running the project locally, make sure you have:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/resumator.git
+git clone https://github.com/umaritics/Resumator.git
 cd resumator
 ```
 
@@ -128,12 +128,6 @@ Resumator aims to become an intelligent AI-powered career assistant that not onl
 Contributions, issues, and feature requests are welcome!
 
 Feel free to fork the repository and submit a pull request.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License.
 
 ---
 
