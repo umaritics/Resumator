@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useResumeStore } from "@/store/useResumeStore";
+import type { ListField, ResumeData } from "@/lib/types/resume";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,72 +25,49 @@ const Player = dynamic(
   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
   { ssr: false },
 );
-const dummyData = {
-  name: "John Doe",
-  title: "Software Engineer",
-  summary: "Experienced developer...",
-  contact: {
-    phone: "123-456-7890",
-    address: "New York, NY",
-    email: "john@example.com",
-    linkedin: "linkedin.com/in/johndoe",
-    github: "github.com/johndoe",
-  },
-  experiences: [
-    "Software Engineer | Tech Co | 2020-Present | Built amazing things",
-  ],
-  education: ["BS Computer Science | University of Tech | 2019"],
-  projects: ["Portfolio Website | React, Next.js | A cool website"],
-  skills: ["React", "TypeScript", "Node.js"],
-  languages: ["English", "Spanish"],
-  additional: {
-    certifications: [],
-    awards: [],
-    otherSkills: [],
-  },
-};
 const ResumeMakerForm = () => {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedResumeFile, setUploadedResumeFile] = useState<File | null>(
     null,
   );
-  const [selectedTemplate, setSelectedTemplate] = useState<
-    "classic" | "elegant" | "corporate" | "creative"
-  >("classic");
-  const [currentStep, setCurrentStep] = useState<
-    "ask" | "upload" | "template" | "form" | "preview"
-  >("ask");
-
-  // --- UPDATED STATE MODEL ---
-  const [resumeData, setResumeData] = useState({
-    name: "",
-    title: "",
-    targetJobDescription: "", // For AI tailoring
-    summary: "",
-    contact: {
-      phone: "",
-      address: "",
-      email: "",
-      linkedin: "",
-      github: "",
-      website: "", // Portfolio URL is common
-    },
-    experiences: [{ title: "", subtitle: "", date: "", description: "" }],
-    education: [
-      { title: "", subtitle: "", date: "" }, // Education doesn't need a description
-    ],
-    projects: [{ title: "", subtitle: "", date: "", description: "" }],
-    skills: [""],
-    languages: [""], // Spoken languages
-    additional: {
-      otherSkills: [""],
-      certifications: [""],
-      awards: [""],
-    },
-    profilePic: null as File | null,
-  });
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const step = useResumeStore((state) => state.step);
+  const selectedTemplate = useResumeStore((state) => state.selectedTemplate);
+  const resumeData = useResumeStore((state) => state.resumeData);
+  const setStep = useResumeStore((state) => state.setStep);
+  const setTemplate = useResumeStore((state) => state.setTemplate);
+  const updateResumeData = useResumeStore((state) => state.updateResumeData);
+  const setResumeData = useResumeStore((state) => state.setResumeData);
+  const updateContact = useResumeStore((state) => state.updateContact);
+  const updateListItem = useResumeStore((state) => state.updateListItem);
+  const updateObjectListItem = useResumeStore(
+    (state) => state.updateObjectListItem,
+  );
+  const addListItem = useResumeStore((state) => state.addListItem);
+  const removeListItem = useResumeStore((state) => state.removeListItem);
+
+  const handleChange = (field: string, value: string) => {
+    updateResumeData({ [field]: value } as Partial<ResumeData>);
+  };
+
+  const handleContactChange = (field: string, value: string) => {
+    updateContact(field as keyof ResumeData["contact"], value);
+  };
+
+  const handleListChange = (field: ListField, index: number, value: string) => {
+    updateListItem(field, index, value);
+  };
+
+  const handleObjectListChange = (
+    field: "experiences" | "projects" | "education",
+    index: number,
+    key: "title" | "subtitle" | "date" | "description",
+    value: string,
+  ) => {
+    updateObjectListItem(field, index, key, value);
+  };
 
   // Ref for the print component
   const printRef = useRef<HTMLDivElement>(null);
@@ -98,157 +77,39 @@ const ResumeMakerForm = () => {
     contentRef: printRef, // Updated hook syntax for v3+
     documentTitle: `${resumeData.name || "Resume"}`,
   });
-  // 1. Load data
   useEffect(() => {
-    const savedData = localStorage.getItem("resumeData");
-    const savedStep = localStorage.getItem("currentStep");
-
-    if (savedData) {
-      // Merge saved data with default state to ensure new fields (like projects) exist if loading old data
-      const parsed = JSON.parse(savedData);
-      setResumeData((prev) => ({ ...prev, ...parsed }));
-    }
-    if (savedStep) {
-      setCurrentStep(savedStep as "ask" | "upload" | "template" | "form");
-    }
-    setIsLoaded(true);
-  }, []);
-
-  // 2. Save data
-  useEffect(() => {
-    localStorage.setItem("resumeData", JSON.stringify(resumeData));
-    localStorage.setItem("currentStep", currentStep);
-  }, [resumeData, currentStep]);
-
-  const handleChange = (field: string, value: string) => {
-    setResumeData({ ...resumeData, [field]: value });
-  };
-
-  const handleContactChange = (field: string, value: string) => {
-    setResumeData({
-      ...resumeData,
-      contact: { ...resumeData.contact, [field]: value },
+    const finishHydration = useResumeStore.persist.onFinishHydration(() => {
+      setHasHydrated(true);
     });
-  };
 
-  // --- GENERIC LIST HANDLERS ---
-  // Updated to handle 'projects' and 'languages'
-  type ListField =
-    | "experiences"
-    | "education"
-    | "skills"
-    | "projects"
-    | "languages"
-    | "certifications"
-    | "awards"
-    | "otherSkills";
-
-  const handleListChange = (field: ListField, index: number, value: string) => {
-    if (["certifications", "awards", "otherSkills"].includes(field)) {
-      const updated = [
-        ...resumeData.additional[field as keyof typeof resumeData.additional],
-      ];
-      updated[index] = value;
-      setResumeData({
-        ...resumeData,
-        additional: { ...resumeData.additional, [field]: updated },
-      });
-    } else {
-      // Handles experiences, education, skills, projects, languages
-      const updated = [
-        ...(resumeData[field as keyof typeof resumeData] as string[]),
-      ];
-      updated[index] = value;
-      setResumeData({ ...resumeData, [field]: updated });
+    if (useResumeStore.persist.hasHydrated()) {
+      setHasHydrated(true);
     }
-  };
 
-  // --- HANDLER FOR OBJECT LISTS ---
-  interface ObjectListItem {
-    title: string;
-    subtitle: string;
-    date: string;
-    description?: string;
-  }
-  const handleObjectListChange = (
-    field: "experiences" | "projects" | "education",
-    index: number,
-    key: "title" | "subtitle" | "date" | "description",
-    value: string,
-  ) => {
-    const updated = [...(resumeData[field] as ObjectListItem[])];
-    updated[index] = { ...updated[index], [key]: value };
-    setResumeData({ ...resumeData, [field]: updated });
-  };
-
-  const addListItem = (field: ListField) => {
-    if (
-      field === "certifications" ||
-      field === "awards" ||
-      field === "otherSkills"
-    ) {
-      setResumeData({
-        ...resumeData,
-        additional: {
-          ...resumeData.additional,
-          [field]: [...resumeData.additional[field], ""],
-        },
-      });
-    } else if (field === "experiences" || field === "projects") {
-      // Cast the field safely to satisfy TS indexing rules
-      const key = field as "experiences" | "projects";
-      setResumeData({
-        ...resumeData,
-        [key]: [
-          ...resumeData[key],
-          { title: "", subtitle: "", date: "", description: "" },
-        ],
-      });
-    } else if (field === "education") {
-      setResumeData({
-        ...resumeData,
-        education: [
-          ...resumeData.education,
-          { title: "", subtitle: "", date: "" },
-        ],
-      });
-    } else if (field === "skills" || field === "languages") {
-      const key = field as "skills" | "languages";
-      setResumeData({
-        ...resumeData,
-        [key]: [...resumeData[key], ""],
-      });
+    const legacyData = localStorage.getItem("resumeData");
+    const legacyStep = localStorage.getItem("step");
+    if (legacyData) {
+      try {
+        const parsed = JSON.parse(legacyData);
+        setResumeData({
+          ...useResumeStore.getState().resumeData,
+          ...parsed,
+          profilePic: null,
+        });
+        localStorage.removeItem("resumeData");
+      } catch {
+        localStorage.removeItem("resumeData");
+      }
     }
-  };
-
-  const removeListItem = (field: ListField, index: number) => {
-    if (
-      field === "certifications" ||
-      field === "awards" ||
-      field === "otherSkills"
-    ) {
-      const updated = [...resumeData.additional[field]];
-      updated.splice(index, 1);
-      setResumeData({
-        ...resumeData,
-        additional: { ...resumeData.additional, [field]: updated },
-      });
-    } else if (field === "experiences" || field === "projects") {
-      const key = field as "experiences" | "projects";
-      const updated = [...resumeData[key]];
-      updated.splice(index, 1);
-      setResumeData({ ...resumeData, [key]: updated });
-    } else if (field === "education") {
-      const updated = [...resumeData.education];
-      updated.splice(index, 1);
-      setResumeData({ ...resumeData, education: updated });
-    } else if (field === "skills" || field === "languages") {
-      const key = field as "skills" | "languages";
-      const updated = [...resumeData[key]];
-      updated.splice(index, 1);
-      setResumeData({ ...resumeData, [key]: updated });
+    if (legacyStep) {
+      setStep(
+        legacyStep as "ask" | "upload" | "template" | "form" | "preview",
+      );
+      localStorage.removeItem("step");
     }
-  };
+
+    return finishHydration;
+  }, [setResumeData, setStep]);
 
   const handleFileUpload = async () => {
     if (!uploadedResumeFile) return;
@@ -268,12 +129,13 @@ const ResumeMakerForm = () => {
       if (response.ok && result.data) {
         const aiData = result.data;
 
-        setResumeData((prev) => ({
+        const prev = useResumeStore.getState().resumeData;
+        setResumeData({
           ...prev,
           name: aiData.name || prev.name,
           title: aiData.title || prev.title,
           summary: aiData.summary || prev.summary,
-          targetJobDescription: prev.targetJobDescription, // Keep existing
+          targetJobDescription: prev.targetJobDescription,
 
           contact: {
             ...prev.contact,
@@ -297,7 +159,6 @@ const ResumeMakerForm = () => {
             Array.isArray(aiData.skills) && aiData.skills.length > 0
               ? aiData.skills
               : prev.skills,
-          // If AI detects projects/languages later, we can map them here. For now, keep previous.
           projects: prev.projects,
           languages: prev.languages,
 
@@ -313,9 +174,10 @@ const ResumeMakerForm = () => {
               ? aiData.additional.otherSkills
               : prev.additional.otherSkills,
           },
-        }));
+          profilePic: prev.profilePic,
+        });
 
-        setCurrentStep("template");
+        setStep("template");
       }
     } catch (error) {
       console.error("Upload error:", error);
@@ -341,20 +203,20 @@ const ResumeMakerForm = () => {
         // 2. Update state with the polished version
         setResumeData(result.data);
         // 3. Move to Preview Step
-        setCurrentStep("preview");
+        setStep("preview");
       } else {
         throw new Error("Failed to enhance");
       }
     } catch (error) {
       console.error(error);
       alert("AI enhancement failed. Using your original data.");
-      setCurrentStep("preview"); // Fallback to preview anyway
+      setStep("preview"); // Fallback to preview anyway
     } finally {
       setIsGenerating(false);
     }
   };
 
-  if (!isLoaded)
+  if (!hasHydrated)
     return (
       <div className="min-h-screen flex items-center justify-center">
         Loading...
@@ -385,20 +247,20 @@ const ResumeMakerForm = () => {
       <div className="min-h-screen flex-grow flex flex-col items-center justify-center p-6 w-full max-w-5xl mx-auto">
         <div className="flex-grow flex flex-col items-center justify-center">
           {/* ASK STEP */}
-          {currentStep === "ask" && (
+          {step === "ask" && (
             <div className="flex flex-col items-center gap-4">
               <h2 className="text-xl font-semibold text-center">
                 Do you already have a resume?
               </h2>
               <div className="flex gap-4">
-                <Button onClick={() => setCurrentStep("upload")}>Yes</Button>
-                <Button onClick={() => setCurrentStep("template")}>No</Button>
+                <Button onClick={() => setStep("upload")}>Yes</Button>
+                <Button onClick={() => setStep("template")}>No</Button>
               </div>
             </div>
           )}
 
           {/* UPLOAD STEP */}
-          {currentStep === "upload" && (
+          {step === "upload" && (
             <div className="flex flex-col items-center gap-4 min-h-[300px] justify-center">
               {isUploading ? (
                 /* --- LOADING STATE --- */
@@ -437,7 +299,7 @@ const ResumeMakerForm = () => {
                     </Button>
                     <Button
                       variant="ghost"
-                      onClick={() => setCurrentStep("ask")}
+                      onClick={() => setStep("ask")}
                     >
                       Back
                     </Button>
@@ -448,7 +310,7 @@ const ResumeMakerForm = () => {
           )}
 
           {/* TEMPLATE STEP */}
-          {currentStep === "template" && (
+          {step === "template" && (
             <div className="w-full max-w-5xl flex flex-col items-center gap-8 animate-in fade-in duration-500">
               <div className="text-center space-y-2">
                 <h2 className="text-3xl font-bold text-gray-800">
@@ -469,8 +331,8 @@ const ResumeMakerForm = () => {
                       : "border-gray-200"
                   }`}
                   onClick={() => {
-                    setSelectedTemplate("classic");
-                    setCurrentStep("form");
+                    setTemplate("classic");
+                    setStep("form");
                   }}
                 >
                   <Image
@@ -496,8 +358,8 @@ const ResumeMakerForm = () => {
                       : "border-gray-200"
                   }`}
                   onClick={() => {
-                    setSelectedTemplate("elegant");
-                    setCurrentStep("form");
+                    setTemplate("elegant");
+                    setStep("form");
                   }}
                 >
                   <Image
@@ -522,8 +384,8 @@ const ResumeMakerForm = () => {
                       : "border-gray-200"
                   }`}
                   onClick={() => {
-                    setSelectedTemplate("corporate");
-                    setCurrentStep("form");
+                    setTemplate("corporate");
+                    setStep("form");
                   }}
                 >
                   <Image
@@ -548,8 +410,8 @@ const ResumeMakerForm = () => {
                       : "border-gray-200"
                   }`}
                   onClick={() => {
-                    setSelectedTemplate("creative");
-                    setCurrentStep("form");
+                    setTemplate("creative");
+                    setStep("form");
                   }}
                 >
                   <Image
@@ -569,7 +431,7 @@ const ResumeMakerForm = () => {
 
               <Button
                 variant="outline"
-                onClick={() => setCurrentStep("ask")}
+                onClick={() => setStep("ask")}
                 className="mt-4"
               >
                 Back
@@ -579,7 +441,7 @@ const ResumeMakerForm = () => {
         </div>
 
         {/* FORM STEP */}
-        {currentStep === "form" && (
+        {step === "form" && (
           <>
             <h1 className="mt-10 text-3xl text-blue-600 font-bold mb-6 flex justify-center text-center">
               Resume Maker
@@ -599,8 +461,7 @@ const ResumeMakerForm = () => {
                     accept="image/*"
                     className="w-full"
                     onChange={(e) =>
-                      setResumeData({
-                        ...resumeData,
+                      updateResumeData({
                         profilePic: e.target.files?.[0] || null,
                       })
                     }
@@ -1053,7 +914,7 @@ const ResumeMakerForm = () => {
         )}
 
         {/* PREVIEW & DOWNLOAD STEP */}
-        {currentStep === "preview" && (
+        {step === "preview" && (
           <div className="w-full flex flex-col items-center gap-6 pb-10 mt-10">
             <div className="flex flex-col items-center gap-2 text-center">
               <h1 className="text-3xl font-bold text-gray-800">
@@ -1071,12 +932,12 @@ const ResumeMakerForm = () => {
               >
                 Download PDF
               </Button>
-              <Button variant="outline" onClick={() => setCurrentStep("form")}>
+              <Button variant="outline" onClick={() => setStep("form")}>
                 Edit Data
               </Button>
               <Button
                 variant="ghost"
-                onClick={() => setCurrentStep("template")}
+                onClick={() => setStep("template")}
               >
                 Change Template
               </Button>
