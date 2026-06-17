@@ -1,11 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useResumeStore } from "@/store/useResumeStore";
 import type { ListField, ResumeData } from "@/lib/types/resume";
 import { mergeTailoredResume, startGeneration } from "@/lib/api/generation";
 import { useGenerationJob } from "@/hooks/useGenerationJob";
 import { createClient } from "@/lib/supabase/client";
+import type { TemplateId, WizardStep } from "@/lib/types/resume";
+import {
+  GENERATION_FAILED_MESSAGE,
+  UPLOAD_FAILED_MESSAGE,
+  logClientError,
+} from "@/lib/userMessages";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,7 +22,6 @@ import Footer from "@/components/footer";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useReactToPrint } from "react-to-print";
-import { useRef } from "react";
 import {
   TemplateClassic,
   TemplateElegant,
@@ -37,6 +42,8 @@ const ResumeMakerForm = () => {
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [templateReturnStep, setTemplateReturnStep] =
+    useState<WizardStep>("form");
 
   const step = useResumeStore((state) => state.step);
   const selectedTemplate = useResumeStore((state) => state.selectedTemplate);
@@ -92,6 +99,21 @@ const ResumeMakerForm = () => {
     contentRef: printRef, // Updated hook syntax for v3+
     documentTitle: `${resumeData.name || "Resume"}`,
   });
+
+  const openTemplatePicker = (returnTo: WizardStep = "form") => {
+    setTemplateReturnStep(returnTo);
+    setStep("template");
+  };
+
+  const handleTemplateSelect = (template: TemplateId) => {
+    setTemplate(template);
+    setStep(templateReturnStep);
+  };
+
+  const showGenerationFailure = useCallback(() => {
+    setGenerationError(GENERATION_FAILED_MESSAGE);
+    setStep("form");
+  }, [setStep]);
   useEffect(() => {
     const finishHydration = useResumeStore.persist.onFinishHydration(() => {
       setHasHydrated(true);
@@ -192,11 +214,11 @@ const ResumeMakerForm = () => {
           profilePic: prev.profilePic,
         });
 
-        setStep("template");
+        openTemplatePicker("form");
       }
     } catch (error) {
-      console.error("Upload error:", error);
-      alert("Failed to read resume data. Please fill manually.");
+      logClientError("resume upload", error);
+      alert(UPLOAD_FAILED_MESSAGE);
     } finally {
       setIsUploading(false);
     }
@@ -217,11 +239,20 @@ const ResumeMakerForm = () => {
       const { job_id } = await startGeneration(resumeData, token);
       setActiveJobId(job_id);
     } catch (error) {
-      console.error(error);
-      setGenerationError("Could not start generation. Please try again.");
+      logClientError("start generation", error);
+      showGenerationFailure();
       setActiveJobId(null);
     }
   };
+
+  useEffect(() => {
+    if (!activeJobId || !jobQuery.isError) {
+      return;
+    }
+    logClientError("generation poll", jobQuery.error);
+    showGenerationFailure();
+    setActiveJobId(null);
+  }, [activeJobId, jobQuery.isError, jobQuery.error, showGenerationFailure]);
 
   useEffect(() => {
     const job = jobQuery.data;
@@ -245,7 +276,8 @@ const ResumeMakerForm = () => {
     }
 
     if (job.status === "failed") {
-      setGenerationError(job.error ?? "Generation failed.");
+      logClientError("generation job failed", job.error);
+      showGenerationFailure();
       setActiveJobId(null);
     }
   }, [
@@ -254,6 +286,7 @@ const ResumeMakerForm = () => {
     setGenerationResult,
     setResumeData,
     setStep,
+    showGenerationFailure,
   ]);
 
   if (!hasHydrated)
@@ -294,7 +327,7 @@ const ResumeMakerForm = () => {
               </h2>
               <div className="flex gap-4">
                 <Button onClick={() => setStep("upload")}>Yes</Button>
-                <Button onClick={() => setStep("template")}>No</Button>
+                <Button onClick={() => openTemplatePicker("form")}>No</Button>
               </div>
             </div>
           )}
@@ -370,10 +403,7 @@ const ResumeMakerForm = () => {
                       ? "border-blue-600 ring-4 ring-blue-100"
                       : "border-gray-200"
                   }`}
-                  onClick={() => {
-                    setTemplate("classic");
-                    setStep("form");
-                  }}
+                  onClick={() => handleTemplateSelect("classic")}
                 >
                   <Image
                     src="/template-classic.png"
@@ -397,10 +427,7 @@ const ResumeMakerForm = () => {
                       ? "border-blue-600 ring-4 ring-blue-100"
                       : "border-gray-200"
                   }`}
-                  onClick={() => {
-                    setTemplate("elegant");
-                    setStep("form");
-                  }}
+                  onClick={() => handleTemplateSelect("elegant")}
                 >
                   <Image
                     src="/template-elegant.png"
@@ -423,10 +450,7 @@ const ResumeMakerForm = () => {
                       ? "border-blue-600 ring-4 ring-blue-100"
                       : "border-gray-200"
                   }`}
-                  onClick={() => {
-                    setTemplate("corporate");
-                    setStep("form");
-                  }}
+                  onClick={() => handleTemplateSelect("corporate")}
                 >
                   <Image
                     src="/template-corporate.png"
@@ -449,10 +473,7 @@ const ResumeMakerForm = () => {
                       ? "border-blue-600 ring-4 ring-blue-100"
                       : "border-gray-200"
                   }`}
-                  onClick={() => {
-                    setTemplate("creative");
-                    setStep("form");
-                  }}
+                  onClick={() => handleTemplateSelect("creative")}
                 >
                   <Image
                     src="/template-creative.png"
@@ -471,7 +492,9 @@ const ResumeMakerForm = () => {
 
               <Button
                 variant="outline"
-                onClick={() => setStep("ask")}
+                onClick={() =>
+                  setStep(templateReturnStep === "preview" ? "preview" : "ask")
+                }
                 className="mt-4"
               >
                 Back
@@ -980,7 +1003,7 @@ const ResumeMakerForm = () => {
               </Button>
               <Button
                 variant="ghost"
-                onClick={() => setStep("template")}
+                onClick={() => openTemplatePicker("preview")}
               >
                 Change Template
               </Button>

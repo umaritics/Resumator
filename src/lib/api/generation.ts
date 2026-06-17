@@ -5,6 +5,7 @@
  * `mergeTailoredResume` re-applies wizard-only state after the pipeline returns.
  */
 import type { ResumeData } from "@/lib/types/resume";
+import { GENERATION_FAILED_MESSAGE, logClientError } from "@/lib/userMessages";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -54,7 +55,8 @@ export function buildGeneratePayload(
   resumeData: ResumeData,
   requested: GenerateOptions = { ats_score: false, cover_letter: false },
 ): GenerateRequestBody {
-  const { profilePic: _pic, targetJobDescription, ...resume_payload } = resumeData;
+  const { profilePic, targetJobDescription, ...resume_payload } = resumeData;
+  void profilePic;
   const trimmedJd = targetJobDescription.trim();
 
   return {
@@ -109,7 +111,8 @@ async function apiFetch<T>(
 
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(detail || `API request failed (${response.status})`);
+    logClientError(`API ${path}`, { status: response.status, detail });
+    throw new Error(GENERATION_FAILED_MESSAGE);
   }
 
   return response.json() as Promise<T>;
