@@ -10,6 +10,7 @@ stays version-controlled.
 | Document | Scope |
 |---|---|
 | [Phase 1 — Architectural Context Ledger](./phase-1/architectural-context-ledger.md) | Supabase schema, RLS, auth SSR, Zustand store |
+| [Phase 2 — Architectural Context Ledger](./phase-2/architectural-context-ledger.md) | FastAPI skeleton, JWT deps, Redis client, OpenAPI |
 | [Testing Guide](./testing.md) | Vitest, pytest, JWT mocking, Redis mocking |
 
 ## Documentation protocol (all phases)
