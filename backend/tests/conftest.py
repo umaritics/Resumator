@@ -5,6 +5,8 @@ from __future__ import annotations
 import os
 from collections.abc import Generator
 
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -70,3 +72,10 @@ def minimal_resume_payload() -> dict:
             "other_skills": [],
         },
     }
+
+
+@pytest.fixture
+def minimal_pdf_bytes() -> bytes:
+    """Valid single-page PDF committed under tests/fixtures/."""
+    fixture = Path(__file__).parent / "fixtures" / "minimal.pdf"
+    return fixture.read_bytes()

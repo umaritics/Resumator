@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     )
     upstash_redis_rest_url: str = Field(..., description="Upstash Redis REST endpoint")
     upstash_redis_rest_token: str = Field(..., description="Upstash Redis REST token")
+    gemini_api_key: str | None = Field(default=None, description="Google Gemini API key")
+    groq_api_key: str | None = Field(default=None, description="Groq API key")
+    gemini_rpm_limit: int = Field(default=15, description="Gemini requests per minute per key")
+    groq_rpm_limit: int = Field(default=30, description="Groq requests per minute per key")
     cors_origins: str = Field(
         default="http://localhost:3000",
         description="Comma-separated browser origins allowed by CORS middleware",

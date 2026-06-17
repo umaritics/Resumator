@@ -100,6 +100,46 @@ pytest tests/test_api_auth.py -v
 | `test_generate_invalid_body_returns_422` | Pydantic rejects malformed generate payload | Schema too permissive |
 | `test_generate_valid_body_returns_not_implemented` | Route reached; business logic still placeholder | Router prefix or validation order bug |
 
+### Phase 3 — engine (`tests/test_provider_router.py`, `tests/test_document_parser.py`)
+
+```bash
+cd backend
+pytest tests/test_provider_router.py -v    # LLM failover + FakeRedis
+pytest tests/test_document_parser.py -v    # PDF/DOCX extraction
+```
+
+| Test | Pass means | Fail often indicates |
+|---|---|---|
+| `test_router_fails_over_on_429` | Gemini 429 → cooldown → Groq success | Failover order or cooldown key typo |
+| `test_router_skips_provider_at_sliding_window_limit` | Quota-full key bypassed | Usage key bucket math (`time.time() // 60`) |
+| `test_extract_docx_returns_paragraph_text` | python-docx path works | Normalization stripping all text |
+| `test_extract_pdf_returns_text` | pdfplumber reads `tests/fixtures/minimal.pdf` | Corrupt fixture PDF |
+
+#### Mocking Redis for ProviderRouter
+
+Use `tests.fakes.redis.FakeRedis` — implements `get`, `set`, `incr`, `expire`:
+
+```python
+from tests.fakes.redis import FakeRedis
+from app.providers.fake import FakeLLMProvider
+from app.providers.router import ProviderCandidate, ProviderRouter
+
+router = ProviderRouter(candidates=[...], redis=FakeRedis())
+```
+
+Do **not** point unit tests at real Upstash — keep CI at zero external I/O.
+
+#### FakeLLMProvider scripting
+
+```python
+from app.providers.exceptions import ProviderRateLimitError
+
+primary = FakeLLMProvider([ProviderRateLimitError("quota")], name="gemini")
+secondary = FakeLLMProvider(["success-json"], name="groq")
+```
+
+Queue order is FIFO; exceptions propagate to the router failover loop.
+
 ---
 
 ## Mocking JWT (backend)
@@ -144,9 +184,9 @@ os.environ.setdefault("UPSTASH_REDIS_REST_URL", "https://mock.upstash.io")
 os.environ.setdefault("UPSTASH_REDIS_REST_TOKEN", "mock-token")
 ```
 
-The Redis client module lazy-initializes; Phase 2 tests do not call Redis yet. Phase 3+
-should use `unittest.mock.patch` on `app.services.redis.get_redis` or a fakeredis
-HTTP shim:
+The Redis client module lazy-initializes; Phase 2 API tests do not call Redis. Phase 3
+router tests use `tests.fakes.redis.FakeRedis` instead of patching Upstash. Integration
+tests that need Redis mocking on the FastAPI app should patch `app.services.redis.get_redis_client`:
 
 ```python
 from unittest.mock import MagicMock, patch
@@ -156,7 +196,8 @@ def mock_redis():
     client = MagicMock()
     client.get.return_value = None
     client.set.return_value = True
-    with patch("app.services.redis.get_redis", return_value=client):
+    client.incr.return_value = 1
+    with patch("app.services.redis.get_redis_client", return_value=client):
         yield client
 ```
 
