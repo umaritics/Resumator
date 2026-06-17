@@ -23,8 +23,15 @@ import {
   type TemplateId,
   type WizardStep,
 } from "@/lib/types/resume";
+import type { ATSScore } from "@/lib/api/generation";
 
-interface ResumeStore {
+interface GenerationResultState {
+  atsScore: ATSScore | null;
+  coverLetter: string | null;
+  generationMeta: Record<string, unknown> | null;
+}
+
+interface ResumeStore extends GenerationResultState {
   step: WizardStep;
   selectedTemplate: TemplateId;
   resumeData: ResumeData;
@@ -42,6 +49,8 @@ interface ResumeStore {
   ) => void;
   addListItem: (field: ListField) => void;
   removeListItem: (field: ListField, index: number) => void;
+  setGenerationResult: (result: Partial<GenerationResultState>) => void;
+  clearGenerationResult: () => void;
   resetStore: () => void;
 }
 
@@ -49,6 +58,9 @@ const initialState = {
   step: "ask" as WizardStep,
   selectedTemplate: "classic" as TemplateId,
   resumeData: defaultResumeData(),
+  atsScore: null as ATSScore | null,
+  coverLetter: null as string | null,
+  generationMeta: null as Record<string, unknown> | null,
 };
 
 export const useResumeStore = create<ResumeStore>()(
@@ -190,6 +202,18 @@ export const useResumeStore = create<ResumeStore>()(
           return {
             resumeData: { ...state.resumeData, [key]: updated },
           };
+        }),
+      setGenerationResult: (result) =>
+        set((state) => ({
+          atsScore: result.atsScore ?? state.atsScore,
+          coverLetter: result.coverLetter ?? state.coverLetter,
+          generationMeta: result.generationMeta ?? state.generationMeta,
+        })),
+      clearGenerationResult: () =>
+        set({
+          atsScore: null,
+          coverLetter: null,
+          generationMeta: null,
         }),
       resetStore: () => set(initialState),
     }),

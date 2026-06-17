@@ -1,6 +1,7 @@
 // app/layout.tsx
 import "./globals.css";
 import { Lexend_Deca } from "next/font/google";
+import { QueryProvider } from "@/components/QueryProvider";
 
 const lexend = Lexend_Deca({
   weight: "400",
@@ -24,7 +25,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={lexend.className}>{children}</body>
+      <body className={lexend.className}>
+        <QueryProvider>{children}</QueryProvider>
+      </body>
     </html>
   );
 }

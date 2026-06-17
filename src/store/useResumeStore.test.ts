@@ -14,6 +14,9 @@ describe("useResumeStore", () => {
       step: "ask",
       selectedTemplate: "classic",
       resumeData: defaultResumeData(),
+      atsScore: null,
+      coverLetter: null,
+      generationMeta: null,
     });
   });
 
@@ -105,5 +108,33 @@ describe("useResumeStore", () => {
     const parsed = JSON.parse(stored!);
     expect(parsed.state.step).toBe("preview");
     expect(parsed.state.resumeData.name).toBe("Persist Me");
+  });
+
+  it("stores optional generation outputs from the async pipeline", () => {
+    getState().setGenerationResult({
+      atsScore: {
+        overall: 82,
+        keyword_match: 80,
+        formatting: 90,
+        semantic_relevance: 75,
+        suggestions: ["Add Kubernetes"],
+      },
+      coverLetter: "Dear hiring manager,",
+      generationMeta: { latencies: { tailoring_agent: 1.2 } },
+    });
+
+    const { atsScore, coverLetter, generationMeta } = getState();
+    expect(atsScore?.overall).toBe(82);
+    expect(coverLetter).toBe("Dear hiring manager,");
+    expect(generationMeta).toEqual({ latencies: { tailoring_agent: 1.2 } });
+  });
+
+  it("clears generation outputs without resetting wizard resume data", () => {
+    getState().updateResumeData({ name: "Keep Me" });
+    getState().setGenerationResult({ coverLetter: "Draft" });
+    getState().clearGenerationResult();
+
+    expect(getState().resumeData.name).toBe("Keep Me");
+    expect(getState().coverLetter).toBeNull();
   });
 });

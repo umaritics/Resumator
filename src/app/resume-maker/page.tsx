@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { useResumeStore } from "@/store/useResumeStore";
 import type { ListField, ResumeData } from "@/lib/types/resume";
+import { mergeTailoredResume, startGeneration } from "@/lib/api/generation";
+import { useGenerationJob } from "@/hooks/useGenerationJob";
+import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,7 +34,9 @@ const ResumeMakerForm = () => {
   const [uploadedResumeFile, setUploadedResumeFile] = useState<File | null>(
     null,
   );
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   const step = useResumeStore((state) => state.step);
   const selectedTemplate = useResumeStore((state) => state.selectedTemplate);
@@ -47,6 +52,16 @@ const ResumeMakerForm = () => {
   );
   const addListItem = useResumeStore((state) => state.addListItem);
   const removeListItem = useResumeStore((state) => state.removeListItem);
+  const setGenerationResult = useResumeStore((state) => state.setGenerationResult);
+  const clearGenerationResult = useResumeStore(
+    (state) => state.clearGenerationResult,
+  );
+
+  const jobQuery = useGenerationJob(activeJobId, accessToken);
+  const isGenerating = Boolean(activeJobId);
+  const progressMessage =
+    jobQuery.data?.progress_message ??
+    (jobQuery.isLoading ? "Starting generation…" : "Tailoring your resume…");
 
   const handleChange = (field: string, value: string) => {
     updateResumeData({ [field]: value } as Partial<ResumeData>);
@@ -188,33 +203,58 @@ const ResumeMakerForm = () => {
   };
 
   const handleSubmit = async () => {
-    setIsGenerating(true);
+    setGenerationError(null);
+    clearGenerationResult();
+
     try {
-      // 1. Send data to AI for polishing
-      const response = await fetch("/api/enhance-resume", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeData }),
-      });
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token ?? null;
+      setAccessToken(token);
 
-      const result = await response.json();
-
-      if (response.ok && result.data) {
-        // 2. Update state with the polished version
-        setResumeData(result.data);
-        // 3. Move to Preview Step
-        setStep("preview");
-      } else {
-        throw new Error("Failed to enhance");
-      }
+      const { job_id } = await startGeneration(resumeData, token);
+      setActiveJobId(job_id);
     } catch (error) {
       console.error(error);
-      alert("AI enhancement failed. Using your original data.");
-      setStep("preview"); // Fallback to preview anyway
-    } finally {
-      setIsGenerating(false);
+      setGenerationError("Could not start generation. Please try again.");
+      setActiveJobId(null);
     }
   };
+
+  useEffect(() => {
+    const job = jobQuery.data;
+    if (!job || !activeJobId) {
+      return;
+    }
+
+    if (job.status === "done" && job.result?.tailored_resume) {
+      const current = useResumeStore.getState().resumeData;
+      setResumeData(
+        mergeTailoredResume(current, job.result.tailored_resume),
+      );
+      setGenerationResult({
+        atsScore: job.result.ats_score ?? null,
+        coverLetter: job.result.cover_letter ?? null,
+        generationMeta: job.result.meta ?? null,
+      });
+      setActiveJobId(null);
+      setStep("preview");
+      return;
+    }
+
+    if (job.status === "failed") {
+      setGenerationError(job.error ?? "Generation failed.");
+      setActiveJobId(null);
+    }
+  }, [
+    activeJobId,
+    jobQuery.data,
+    setGenerationResult,
+    setResumeData,
+    setStep,
+  ]);
 
   if (!hasHydrated)
     return (
@@ -232,10 +272,10 @@ const ResumeMakerForm = () => {
           className="w-60 h-60"
         />
         <h2 className="text-2xl font-bold text-blue-600 mt-4 animate-pulse">
-          Polishing your resume...
+          {progressMessage}
         </h2>
         <p className="text-gray-500 mt-2">
-          Optimizing grammar, action verbs, and formatting.
+          Our AI pipeline is analyzing, tailoring, and polishing your resume.
         </p>
       </div>
     );
@@ -901,7 +941,10 @@ const ResumeMakerForm = () => {
 
                 {/* Removed "Other Skills" (redundant with Technical Skills + Languages usually, but you can keep it if you really want) */}
               </CardContent>
-              <div className="p-6 flex justify-center">
+              <div className="p-6 flex flex-col items-center gap-3">
+                {generationError && (
+                  <p className="text-sm text-red-600 text-center">{generationError}</p>
+                )}
                 <Button
                   className="w-full max-w-lg bg-green-600 hover:bg-green-800 text-lg py-6"
                   onClick={handleSubmit}
