@@ -12,6 +12,7 @@ stays version-controlled.
 | [Phase 1 — Architectural Context Ledger](./phase-1/architectural-context-ledger.md) | Supabase schema, RLS, auth SSR, Zustand store |
 | [Phase 2 — Architectural Context Ledger](./phase-2/architectural-context-ledger.md) | FastAPI skeleton, JWT deps, Redis client, OpenAPI |
 | [Phase 3 — Architectural Context Ledger](./phase-3/architectural-context-ledger.md) | ProviderRouter failover, document extraction, FakeLLM |
+| [Phase 4 — Architectural Context Ledger](./phase-4/architectural-context-ledger.md) | LangGraph pipeline, agent nodes, timed meta metrics |
 | [Testing Guide](./testing.md) | Vitest, pytest, JWT mocking, Redis mocking |
 
 ## Documentation protocol (all phases)

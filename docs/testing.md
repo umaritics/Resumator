@@ -140,6 +140,33 @@ secondary = FakeLLMProvider(["success-json"], name="groq")
 
 Queue order is FIFO; exceptions propagate to the router failover loop.
 
+### Phase 4 — LangGraph pipeline (`tests/test_pipeline_graph.py`)
+
+```bash
+cd backend
+pytest tests/test_pipeline_graph.py -v
+```
+
+| Test | Pass means | Fail often indicates |
+|---|---|---|
+| `test_full_pipeline_runs_all_agents_and_records_latencies` | All 5 agents run; `meta.latencies` populated | FakeLLM response queue out of order |
+| `test_pipeline_skips_parser_when_resume_already_parsed` | Preloaded `parsed_resume` bypasses parser | Skip predicate not checking state |
+| `test_pipeline_skips_jd_analyzer_on_cache_hit` | Cached JD skips analyzer node | `cache_hits.jd_analysis` ignored |
+| `test_pipeline_omits_optional_agents_when_not_requested` | ATS/cover letter skipped when flags false | Postprocess always invoking agents |
+
+#### FakeLLMProvider response queue ordering
+
+When running the **full** pipeline with both optional agents enabled, queue responses
+in call order:
+
+1. `parser_agent` → ResumeData JSON
+2. `jd_analyzer_agent` → JDAnalysis JSON
+3. `tailoring_agent` → ResumeData JSON
+4. `ats_scoring_agent` → ATSScore JSON
+5. `cover_letter_agent` → plain text
+
+Use helpers in `tests/fixtures/pipeline_responses.py` for canonical sample payloads.
+
 ---
 
 ## Mocking JWT (backend)
