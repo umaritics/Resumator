@@ -63,7 +63,7 @@ class ProviderRouter:
             except ProviderRateLimitError as exc:
                 self._set_cooldown(candidate)
                 errors.append(f"{candidate.name}: {exc}")
-            except ProviderTimeoutError as exc:
+            except ProviderTimeoutError:
                 self._set_cooldown(candidate)
                 errors.append(f"{candidate.name}: timeout")
             except ProviderError as exc:

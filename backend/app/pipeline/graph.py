@@ -12,9 +12,9 @@ from app.pipeline.agents.cover_letter import cover_letter_agent
 from app.pipeline.agents.jd_analyzer import jd_analyzer_agent
 from app.pipeline.agents.parser import parser_agent
 from app.pipeline.agents.tailoring import tailoring_agent
+from app.pipeline.constants import STAGE_MESSAGES
 from app.pipeline.merge import merge_state_patches
 from app.pipeline.routing import should_run_jd_analyzer, should_run_parser
-from app.pipeline.constants import STAGE_MESSAGES
 from app.pipeline.state import PipelineState
 from app.providers.router import ProviderRouter
 

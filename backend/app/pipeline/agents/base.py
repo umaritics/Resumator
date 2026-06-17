@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import json
 import time
-from collections.abc import Awaitable, Callable
 from typing import TypeVar
 
 from pydantic import BaseModel
 
+from app.pipeline.json_utils import extract_json_text
 from app.pipeline.state import PipelineState, merge_meta_update
 from app.providers.router import ProviderRouter
 
@@ -26,6 +25,6 @@ async def run_timed_llm_call(
     started = time.perf_counter()
     raw, provider_name = await router.generate(prompt)
     elapsed_ms = int((time.perf_counter() - started) * 1000)
-    parsed = model.model_validate_json(raw)
+    parsed = model.model_validate_json(extract_json_text(raw))
     meta = merge_meta_update(state, node_name, elapsed_ms, provider_name)
     return parsed, {"meta": meta}

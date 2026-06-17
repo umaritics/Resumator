@@ -6,11 +6,11 @@ from functools import lru_cache
 
 from upstash_redis import Redis
 
-from app.config import Settings, get_settings
+from app.config import get_settings
 
 
 @lru_cache
-def get_redis_client(settings: Settings | None = None) -> Redis:
+def get_redis_client() -> Redis:
     """Return a process-singleton Upstash Redis client.
 
     Side effects: none on import — connection is lazy HTTP. Callers in Phase 3+
@@ -18,5 +18,5 @@ def get_redis_client(settings: Settings | None = None) -> Redis:
 
     Raises at runtime if Upstash env vars are missing (Settings validation).
     """
-    cfg = settings or get_settings()
+    cfg = get_settings()
     return Redis(url=cfg.upstash_redis_rest_url, token=cfg.upstash_redis_rest_token)

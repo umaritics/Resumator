@@ -1,6 +1,6 @@
 """Supabase JWT verification dependencies for FastAPI routes.
 
-Production path validates RS256 tokens against Supabase JWKS. Test/CI path accepts
+Production path validates Supabase JWTs (RS256 or ES256) against JWKS. Test/CI path accepts
 HS256 tokens signed with SUPABASE_JWT_SECRET so pytest never calls the network.
 
 External state: Supabase Auth JWKS endpoint (cached in-process via PyJWKClient).
@@ -21,6 +21,8 @@ from app.config import Settings, get_settings
 
 bearer_scheme = HTTPBearer(auto_error=False)
 _jwk_client: PyJWKClient | None = None
+# Supabase projects may sign user JWTs with ES256 (ECC) or legacy RS256 (RSA).
+JWKS_ALGORITHMS = ("RS256", "ES256")
 
 
 def create_test_access_token(user_id: str) -> str:
@@ -73,7 +75,7 @@ def verify_supabase_jwt(token: str, settings: Settings) -> str:
         payload = jwt.decode(
             token,
             signing_key.key,
-            algorithms=["RS256"],
+            algorithms=list(JWKS_ALGORITHMS),
             audience="authenticated",
         )
         user_id = payload.get("sub")

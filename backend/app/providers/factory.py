@@ -15,7 +15,7 @@ DEFAULT_GROQ_RPM = 30
 def build_provider_router(settings: Settings | None = None) -> ProviderRouter:
     """Construct router with Gemini primary and Groq secondary when keys are configured."""
     cfg = settings or get_settings()
-    redis = get_redis_client(cfg)
+    redis = get_redis_client()
     candidates: list[ProviderCandidate] = []
 
     if cfg.gemini_api_key:

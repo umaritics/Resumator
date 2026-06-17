@@ -3,21 +3,39 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_BACKEND_DIR = Path(__file__).resolve().parent.parent
+_REPO_ROOT = _BACKEND_DIR.parent
 
 
 class Settings(BaseSettings):
     """Runtime settings for FastAPI, Supabase JWT verification, and Upstash Redis.
 
     Uses pydantic-settings so Cloud Run/Vercel env injection is validated at startup.
+    Local dev loads ``backend/.env*`` and repo-root ``.env*`` (shared with Next.js).
     """
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(
+            _BACKEND_DIR / ".env",
+            _BACKEND_DIR / ".env.local",
+            _REPO_ROOT / ".env",
+            _REPO_ROOT / ".env.local",
+        ),
+        extra="ignore",
+    )
 
     supabase_url: str = Field(
         ...,
+        validation_alias=AliasChoices(
+            "supabase_url",
+            "SUPABASE_URL",
+            "NEXT_PUBLIC_SUPABASE_URL",
+        ),
         description="Supabase project URL, e.g. https://<ref>.supabase.co",
     )
     supabase_jwt_secret: str | None = Field(

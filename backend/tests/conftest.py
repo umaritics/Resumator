@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from collections.abc import Generator
-
 from pathlib import Path
 
 import pytest
@@ -87,7 +86,7 @@ def mock_redis_client(monkeypatch: pytest.MonkeyPatch, fake_redis: "FakeRedis") 
     from app.services import redis as redis_module
 
     redis_module.get_redis_client.cache_clear()
-    monkeypatch.setattr(redis_module, "get_redis_client", lambda settings=None: fake_redis)
+    monkeypatch.setattr(redis_module, "get_redis_client", lambda: fake_redis)
     return fake_redis
 
 
