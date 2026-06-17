@@ -1,52 +1,54 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Menu, X } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
 import ProfileDropdown from "./ProfileDropdown";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  // const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const supabase = useMemo(() => createClient(), []);
 
-  // // ✅ Fetch user + subscribe to auth changes
-  // useEffect(() => {
-  //   const getUser = async () => {
-  //     const {
-  //       data: { session },
-  //       error,
-  //     } = await supabase.auth.getSession();
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user: currentUser },
+        error,
+      } = await supabase.auth.getUser();
 
-  //     if (error) console.error("Error fetching session:", error);
+      if (error) console.error("Error fetching session:", error.message);
 
-  //     setUser(session?.user ?? null);
-  //     setLoading(false);
-  //   };
-  //   getUser();
+      setUser(currentUser);
+      setLoading(false);
+    };
+    getUser();
 
-  //   // ✅ Listen for auth state changes
-  //   const { data: subscription } = supabase.auth.onAuthStateChange(
-  //     (_event, session) => {
-  //       setUser(session?.user ?? null);
-  //       setLoading(false);
-  //     }
-  //   );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-  //   return () => {
-  //     subscription.subscription.unsubscribe();
-  //   };
-  // }, []);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
-  // const handleLogout = async () => {
-  //   await supabase.auth.signOut();
-  // };
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setIsOpen(false);
+  };
 
   return (
     <nav className="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Left: Logo */}
           <div className="flex items-center space-x-2">
             <Link
               href="/"
@@ -56,7 +58,6 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Center: Nav Links (Desktop Only) */}
           <div className="hidden md:flex space-x-8">
             <Link href="/" className="text-gray-700 hover:text-blue-600">
               Home
@@ -84,11 +85,10 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Right: Auth/Profile (Desktop Only) */}
           <div className="hidden md:flex items-center">
-            {/* {!loading &&
+            {!loading &&
               (user ? (
-                <ProfileDropdown /> // ✅ Only when logged in
+                <ProfileDropdown user={user} onLogout={handleLogout} />
               ) : (
                 <Link
                   href="/auth"
@@ -96,10 +96,9 @@ export default function Navbar() {
                 >
                   Sign Up / Login
                 </Link>
-              ))} */}
+              ))}
           </div>
 
-          {/* Mobile: Hamburger */}
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -115,7 +114,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-white shadow-md px-4 pb-4">
           <Link
@@ -143,17 +141,17 @@ export default function Navbar() {
             Contact
           </Link>
 
-          {/* {!loading &&
+          {!loading &&
             (user ? (
               <div className="mt-2 border-t pt-2">
                 <Link
-                  href="/profile"
+                  href="/dashboard"
                   className="block py-2 text-gray-700 hover:text-blue-600"
                 >
-                  Profile
+                  Dashboard
                 </Link>
                 <button
-                  // onClick={handleLogout}
+                  onClick={handleLogout}
                   className="w-full text-left py-2 text-gray-700 hover:text-blue-600"
                 >
                   Logout
@@ -166,7 +164,7 @@ export default function Navbar() {
               >
                 Sign Up / Login
               </Link>
-            ))} */}
+            ))}
         </div>
       )}
     </nav>
