@@ -13,7 +13,6 @@ from tests.conftest import minimal_resume_payload
 from tests.fakes.redis import FakeRedis
 from tests.fixtures.pipeline_responses import (
     SAMPLE_JD_ANALYSIS,
-    SAMPLE_PARSED_RESUME,
     SAMPLE_TAILORED_RESUME,
 )
 
