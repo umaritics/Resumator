@@ -269,16 +269,19 @@ variable names via environment at Cloud Run deploy time — never from frontend 
 
 ---
 
-## CI alignment (Phase 6 preview)
+## CI alignment (Phase 6)
 
-Planned GitHub Actions jobs:
+GitHub Actions workflow `.github/workflows/ci.yml`:
 
 ```yaml
-# frontend
-npm ci && npm test
+# frontend job
+npm ci && npm run lint && npm test
 
-# backend
-pip install -r backend/requirements.txt && pytest
+# backend job
+pip install -r requirements.txt ruff && ruff check app tests && pytest
 ```
 
-Both suites must pass with **zero external API calls**.
+Backend deploy: `.github/workflows/deploy-backend.yml` (Cloud Run, WIF auth) — see
+`docs/phase-6/architectural-context-ledger.md` for required GitHub secrets.
+
+Both CI test suites must pass with **zero external API calls**.
