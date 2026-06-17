@@ -1,0 +1,20 @@
+# Resumator V2 — Engineering Documentation
+
+This folder is the repository's **shared mental model**: architectural rationale, test
+runbooks, and phase-by-phase implementation ledgers. It complements the high-level
+`ARCHITECTURE.md` spec (local, gitignored) with **maintainer-facing context** that
+stays version-controlled.
+
+## Index
+
+| Document | Scope |
+|---|---|
+| [Phase 1 — Architectural Context Ledger](./phase-1/architectural-context-ledger.md) | Supabase schema, RLS, auth SSR, Zustand store |
+| [Testing Guide](./testing.md) | Vitest, pytest, JWT mocking, Redis mocking |
+
+## Documentation protocol (all phases)
+
+1. **Architectural Context Ledger** — append per-phase `docs/phase-N/architectural-context-ledger.md` explaining *why* non-obvious patterns were chosen.
+2. **Module docstrings** — JSDoc (frontend) / PEP 257 (backend) on every module boundary; no line-by-line noise.
+3. **OpenAPI contracts** — FastAPI routes declare status codes, security scopes, and Pydantic field descriptions (Phase 2+).
+4. **Test mappings** — update `docs/testing.md` whenever a new suite is introduced.

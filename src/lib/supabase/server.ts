@@ -1,3 +1,16 @@
+/**
+ * Server Supabase client for Route Handlers and Server Components.
+ *
+ * Uses Next.js `cookies()` so Supabase sessions remain in httpOnly cookies instead of
+ * browser-accessible storage — the primary XSS mitigation for auth tokens.
+ *
+ * @returns Async-initialized Supabase client with read/write access to the request cookie jar.
+ *
+ * Error behavior: `setAll` silently no-ops when invoked from a Server Component context
+ * where cookies are read-only; session refresh is delegated to `src/middleware.ts`.
+ *
+ * External dependencies: request cookie store, `NEXT_PUBLIC_SUPABASE_*` env vars.
+ */
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 

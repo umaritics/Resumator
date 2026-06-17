@@ -1,3 +1,18 @@
+/**
+ * Persisted wizard state store for the resume maker flow.
+ *
+ * Replaces monolithic `useState` + manual `localStorage` effects. Chosen over Context
+ * because nested list mutations (experiences, skills, additional.*) need granular
+ * updates without prop drilling; chosen over TanStack Query because draft data is
+ * device-local until explicitly saved to Supabase (Phase 5).
+ *
+ * Persistence: `localStorage` key `resumator-resume-store` via Zustand `persist`.
+ * Side effect: `profilePic` (File) is stripped on serialize — re-upload required after refresh.
+ *
+ * Server I/O: none. AI parse/enhance handlers in the page call `setResumeData` on success.
+ *
+ * @see docs/phase-1/architectural-context-ledger.md §4
+ */
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import {

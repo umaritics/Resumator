@@ -1,3 +1,13 @@
+/**
+ * Shared resume domain types for the wizard UI and Zustand store.
+ *
+ * Mirrors the FastAPI `ResumeData` Pydantic model (Phase 2) with frontend-only fields
+ * (`targetJobDescription`, `profilePic`). Keeping types centralized prevents schema
+ * drift between parse/enhance API routes and persisted store state.
+ *
+ * `defaultResumeData()` returns a fresh empty wizard skeleton — used by store init and
+ * Vitest fixtures. Not persisted directly; the store clones via Zustand actions.
+ */
 export type WizardStep = "ask" | "upload" | "template" | "form" | "preview";
 
 export type TemplateId = "classic" | "elegant" | "corporate" | "creative";
@@ -49,6 +59,7 @@ export type ListField =
   | "awards"
   | "otherSkills";
 
+/** Factory for empty wizard state — safe to call on every test reset. */
 export const defaultResumeData = (): ResumeData => ({
   name: "",
   title: "",
