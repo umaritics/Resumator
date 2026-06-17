@@ -45,23 +45,9 @@ def test_generate_invalid_resume_data_returns_422(client) -> None:
     assert response.status_code == 422
 
 
-def test_generate_valid_body_hits_placeholder(client) -> None:
-    """Valid payload reaches the route handler; business logic is not implemented yet."""
-    response = client.post(
-        "/api/v1/generate",
-        json={
-            "resume_data": minimal_resume_payload(),
-            "job_description": "Looking for a backend engineer.",
-            "requested": {"ats_score": True, "cover_letter": True},
-        },
-    )
-    assert response.status_code == 501
-    assert "not implemented" in response.json()["detail"].lower()
-
-
-def test_get_job_without_implementation_returns_501(client) -> None:
-    response = client.get("/api/v1/jobs/00000000-0000-0000-0000-000000000001")
-    assert response.status_code == 501
+def test_get_job_unknown_returns_404(client) -> None:
+    response = client.get("/api/v1/jobs/00000000-0000-0000-0000-000000000099")
+    assert response.status_code == 404
 
 
 def test_list_resumes_with_valid_token_returns_not_implemented(authenticated_client, auth_headers) -> None:

@@ -44,7 +44,16 @@ class JobResponse(BaseModel):
     """GET /api/v1/jobs/{job_id} polling payload."""
 
     status: JobStatus
+    stage: str | None = Field(
+        default=None,
+        description="Current pipeline node id for progressive UI copy",
+    )
+    progress_message: str | None = Field(
+        default=None,
+        description="Human-readable status shown while polling",
+    )
     result: dict[str, Any] | None = Field(
         default=None,
         description="Populated when status=done — tailored resume, ATS, cover letter, meta",
     )
+    error: str | None = Field(default=None, description="Populated when status=failed")

@@ -1,19 +1,23 @@
-"""Async generation endpoint placeholder — LangGraph pipeline wires in Phase 4."""
+"""Async generation entrypoint — enqueues LangGraph pipeline as background work."""
 
 from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, status
 
 from app.dependencies.auth import optional_user_id
-from app.schemas.jobs import GenerateRequest
+from app.schemas.jobs import GenerateRequest, GenerateResponse
+from app.services.generation_service import execute_generation_job
+from app.services.job_store import JobStore
 
 router = APIRouter(prefix="/generate", tags=["generation"])
 
 
 @router.post(
     "",
+    response_model=GenerateResponse,
+    status_code=status.HTTP_202_ACCEPTED,
     summary="Start resume tailoring pipeline",
     description=(
         "Accepts resume JSON and optional job description, enqueues a background "
@@ -21,8 +25,9 @@ router = APIRouter(prefix="/generate", tags=["generation"])
         "with stricter rate limits (Phase 3)."
     ),
     responses={
-        status.HTTP_501_NOT_IMPLEMENTED: {
-            "description": "Pipeline not yet implemented (Phase 4)",
+        status.HTTP_202_ACCEPTED: {
+            "description": "Job accepted — poll GET /api/v1/jobs/{job_id}",
+            "model": GenerateResponse,
         },
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Bearer token invalid when Authorization header supplied",
@@ -37,11 +42,11 @@ router = APIRouter(prefix="/generate", tags=["generation"])
 )
 async def start_generation(
     body: GenerateRequest,
+    background_tasks: BackgroundTasks,
     user_id: Annotated[str | None, Depends(optional_user_id)] = None,
-) -> None:
-    """Validate input and enqueue pipeline — business logic arrives in Phase 4."""
-    _ = user_id  # rate-limit bucket key in Phase 3
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Generation pipeline not implemented",
-    )
+) -> GenerateResponse:
+    """Write pending job to Redis and execute pipeline in a FastAPI background task."""
+    store = JobStore()
+    job_id = store.create(user_id=user_id)
+    background_tasks.add_task(execute_generation_job, job_id, body, user_id)
+    return GenerateResponse(job_id=job_id)

@@ -14,6 +14,7 @@ from app.pipeline.agents.parser import parser_agent
 from app.pipeline.agents.tailoring import tailoring_agent
 from app.pipeline.merge import merge_state_patches
 from app.pipeline.routing import should_run_jd_analyzer, should_run_parser
+from app.pipeline.constants import STAGE_MESSAGES
 from app.pipeline.state import PipelineState
 from app.providers.router import ProviderRouter
 
@@ -43,24 +44,26 @@ async def postprocess_parallel(state: PipelineState, router: ProviderRouter) -> 
     return merge_state_patches(*results)
 
 
-def build_pipeline_graph(router: ProviderRouter):
+def build_pipeline_graph(router: ProviderRouter, on_progress=None):
     """Compile the LangGraph pipeline bound to a shared ProviderRouter instance.
 
-    Graph shape (parallel batches implemented via asyncio.gather orchestration nodes):
-
-    START → preprocess_parallel → tailoring_agent → postprocess_parallel → END
-
-    Independent agent functions live under ``app.pipeline.agents.*`` and record
-    ``meta['latencies']`` / ``meta['providers']`` per node.
+    Optional ``on_progress(stage, message)`` writes Redis job status during Phase 5 polling.
     """
 
+    def _notify(stage: str) -> None:
+        if on_progress is not None:
+            on_progress(stage, STAGE_MESSAGES.get(stage, stage))
+
     async def preprocess_node(state: PipelineState) -> dict[str, Any]:
+        _notify("preprocess_parallel")
         return await preprocess_parallel(state, router)
 
     async def tailoring_node(state: PipelineState) -> dict[str, Any]:
+        _notify("tailoring_agent")
         return await tailoring_agent(state, router)
 
     async def postprocess_node(state: PipelineState) -> dict[str, Any]:
+        _notify("postprocess_parallel")
         return await postprocess_parallel(state, router)
 
     workflow: StateGraph = StateGraph(PipelineState)

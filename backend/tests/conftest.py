@@ -75,6 +75,23 @@ def minimal_resume_payload() -> dict:
 
 
 @pytest.fixture
+def fake_redis() -> "FakeRedis":
+    from tests.fakes.redis import FakeRedis
+
+    return FakeRedis()
+
+
+@pytest.fixture(autouse=True)
+def mock_redis_client(monkeypatch: pytest.MonkeyPatch, fake_redis: "FakeRedis") -> "FakeRedis":
+    """Route all Redis access through in-memory FakeRedis — no live Upstash in CI."""
+    from app.services import redis as redis_module
+
+    redis_module.get_redis_client.cache_clear()
+    monkeypatch.setattr(redis_module, "get_redis_client", lambda settings=None: fake_redis)
+    return fake_redis
+
+
+@pytest.fixture
 def minimal_pdf_bytes() -> bytes:
     """Valid single-page PDF committed under tests/fixtures/."""
     fixture = Path(__file__).parent / "fixtures" / "minimal.pdf"
