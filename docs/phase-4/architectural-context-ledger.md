@@ -3,7 +3,7 @@
 **Objective:** LangGraph multi-agent pipeline with timed metrics, cache-aware skips, and
 FakeLLMProvider end-to-end tests.
 
-**Status:** Complete (not yet wired to `/api/v1/generate` — Phase 5)
+**Status:** Complete — wired to `/api/v1/generate` in Phase 5
 
 ---
 
