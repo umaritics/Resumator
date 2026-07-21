@@ -48,3 +48,6 @@ next-env.d.ts
 ROADMAP.md
 ARCHITECTURE.md
 PROJECT-STRUCTURE.txt
+
+# Backend lives in a separate repo: https://github.com/umaritics/resumator-backend
+/backend/
