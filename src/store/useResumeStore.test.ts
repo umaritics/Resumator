@@ -96,7 +96,7 @@ describe("useResumeStore", () => {
     expect(getState().resumeData.title).toBe("Designer");
   });
 
-  it("persists resumeData and step to localStorage", async () => {
+  it("persists resumeData and maps preview step to ask", async () => {
     getState().setStep("preview");
     getState().updateResumeData({ name: "Persist Me" });
 
@@ -106,7 +106,7 @@ describe("useResumeStore", () => {
     expect(stored).toBeTruthy();
 
     const parsed = JSON.parse(stored!);
-    expect(parsed.state.step).toBe("preview");
+    expect(parsed.state.step).toBe("ask");
     expect(parsed.state.resumeData.name).toBe("Persist Me");
   });
 

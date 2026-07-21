@@ -2,17 +2,17 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-
-// 1. Keep your working PDF fix
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse = require("pdf-parse/lib/pdf-parse.js");
+import {
+  extractUploadText,
+  UnsupportedResumeFileError,
+} from "@/lib/resume/extractUploadText";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get("file") as File | null;
 
     if (!file) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
@@ -20,12 +20,15 @@ export async function POST(req: NextRequest) {
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+    const rawText = await extractUploadText(buffer, file.name || "resume.pdf");
 
-    // 2. Parse PDF
-    const pdfData = await pdfParse(buffer);
-    const rawText = pdfData.text;
+    if (!rawText) {
+      return NextResponse.json(
+        { error: "Could not read any text from that file." },
+        { status: 422 },
+      );
+    }
 
-    // 3. Use specific model version to avoid 404s
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
     });
@@ -94,13 +97,11 @@ export async function POST(req: NextRequest) {
     const response = await result.response;
     const text = response.text();
 
-    // 4. Robust Cleaning (Handle potential markdown wrapping)
     let cleanJson = text
       .replace(/```json/g, "")
       .replace(/```/g, "")
       .trim();
 
-    // Safety check: sometimes models add "Here is the JSON:" text
     const firstBracket = cleanJson.indexOf("{");
     const lastBracket = cleanJson.lastIndexOf("}");
     if (firstBracket !== -1 && lastBracket !== -1) {
@@ -113,9 +114,12 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     console.error("Resume parsing failed:", error);
 
-    // Return the actual error message for debugging
+    if (error instanceof UnsupportedResumeFileError) {
+      return NextResponse.json({ error: error.message }, { status: 422 });
+    }
+
     return NextResponse.json(
-      { error: (error as Error).message || "Failed to parse resume" },
+      { error: "Failed to parse resume. Please try another file." },
       { status: 500 },
     );
   }

@@ -221,13 +221,30 @@ export const useResumeStore = create<ResumeStore>()(
       name: "resumator-resume-store",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        step: state.step,
+        step: state.step === "preview" ? "ask" : state.step,
         selectedTemplate: state.selectedTemplate,
         resumeData: {
           ...state.resumeData,
           profilePic: null,
         },
       }),
+      onRehydrateStorage: () => (state) => {
+        // Preview is a terminal view — never trap users there after refresh.
+        if (state?.step === "preview") {
+          state.step = "ask";
+        }
+      },
     },
   ),
 );
+
+/** True when the persisted draft has something worth continuing. */
+export function hasDraftResume(data: ResumeData): boolean {
+  return Boolean(
+    data.name.trim() ||
+      data.title.trim() ||
+      data.summary.trim() ||
+      data.contact.email.trim() ||
+      data.experiences.some((item) => item.title.trim() || item.subtitle.trim()),
+  );
+}

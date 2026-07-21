@@ -16,16 +16,12 @@ export default function Navbar() {
   useEffect(() => {
     const getUser = async () => {
       const {
-        data: { user: currentUser },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error) console.error("Error fetching session:", error.message);
-
-      setUser(currentUser);
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
       setLoading(false);
     };
-    getUser();
+    void getUser();
 
     const {
       data: { subscription },

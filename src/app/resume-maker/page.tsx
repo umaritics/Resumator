@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useResumeStore } from "@/store/useResumeStore";
+import {
+  hasDraftResume,
+  useResumeStore,
+} from "@/store/useResumeStore";
 import type { ListField, ResumeData } from "@/lib/types/resume";
 import { mergeTailoredResume, startGeneration } from "@/lib/api/generation";
 import { useGenerationJob } from "@/hooks/useGenerationJob";
@@ -16,18 +19,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ResumeScaler } from "@/components/ResumeScaler";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useReactToPrint } from "react-to-print";
-import {
-  TemplateClassic,
-  TemplateElegant,
-  TemplateCorporate,
-  TemplateCreative,
-} from "@/components/resumeTemplates";
+import { AskStep } from "@/components/resume-maker/AskStep";
+import { UploadStep } from "@/components/resume-maker/UploadStep";
+import { TemplateStep } from "@/components/resume-maker/TemplateStep";
+import { PreviewStep } from "@/components/resume-maker/PreviewStep";
 
 const Player = dynamic(
   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
@@ -63,6 +63,7 @@ const ResumeMakerForm = () => {
   const clearGenerationResult = useResumeStore(
     (state) => state.clearGenerationResult,
   );
+  const resetStore = useResumeStore((state) => state.resetStore);
 
   const jobQuery = useGenerationJob(activeJobId, accessToken);
   const isGenerating = Boolean(activeJobId);
@@ -114,6 +115,14 @@ const ResumeMakerForm = () => {
     setGenerationError(GENERATION_FAILED_MESSAGE);
     setStep("form");
   }, [setStep]);
+
+  const handleStartOver = () => {
+    setUploadedResumeFile(null);
+    setGenerationError(null);
+    setActiveJobId(null);
+    clearGenerationResult();
+    resetStore();
+  };
   useEffect(() => {
     const finishHydration = useResumeStore.persist.onFinishHydration(() => {
       setHasHydrated(true);
@@ -215,6 +224,8 @@ const ResumeMakerForm = () => {
         });
 
         openTemplatePicker("form");
+      } else {
+        alert(result.error || UPLOAD_FAILED_MESSAGE);
       }
     } catch (error) {
       logClientError("resume upload", error);
@@ -297,17 +308,17 @@ const ResumeMakerForm = () => {
     );
   if (isGenerating) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4 py-10">
         <Player
           autoplay
           loop
           src="/animations/resume-maker-animation.json"
-          className="w-60 h-60"
+          className="w-40 h-40 sm:w-60 sm:h-60"
         />
-        <h2 className="text-2xl font-bold text-blue-600 mt-4 animate-pulse">
+        <h2 className="text-lg sm:text-2xl font-bold text-blue-600 mt-4 animate-pulse text-center max-w-md">
           {progressMessage}
         </h2>
-        <p className="text-gray-500 mt-2">
+        <p className="text-gray-500 mt-2 text-sm sm:text-base text-center max-w-sm px-2">
           Our AI pipeline is analyzing, tailoring, and polishing your resume.
         </p>
       </div>
@@ -317,189 +328,36 @@ const ResumeMakerForm = () => {
   return (
     <div className="pt-6 mx-auto">
       <Navbar />
-      <div className="min-h-screen flex-grow flex flex-col items-center justify-center p-6 w-full max-w-5xl mx-auto">
+      <div className="min-h-screen flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-5xl mx-auto pt-20 sm:pt-24">
         <div className="flex-grow flex flex-col items-center justify-center">
-          {/* ASK STEP */}
           {step === "ask" && (
-            <div className="flex flex-col items-center gap-4">
-              <h2 className="text-xl font-semibold text-center">
-                Do you already have a resume?
-              </h2>
-              <div className="flex gap-4">
-                <Button onClick={() => setStep("upload")}>Yes</Button>
-                <Button onClick={() => openTemplatePicker("form")}>No</Button>
-              </div>
-            </div>
+            <AskStep
+              hasDraft={hasDraftResume(resumeData)}
+              onContinueDraft={() => setStep("form")}
+              onStartOver={handleStartOver}
+              onHasResume={() => setStep("upload")}
+              onStartBlank={() => openTemplatePicker("form")}
+            />
           )}
 
-          {/* UPLOAD STEP */}
           {step === "upload" && (
-            <div className="flex flex-col items-center gap-4 min-h-[300px] justify-center">
-              {isUploading ? (
-                /* --- LOADING STATE --- */
-                <div className="flex flex-col items-center justify-center fade-in-animation">
-                  <Player
-                    autoplay
-                    loop
-                    src="/animations/resume-maker-animation.json"
-                    className="w-60 h-60"
-                  />
-                  <h2 className="text-xl font-semibold text-blue-600 mt-6 flex items-center gap-1">
-                    Analyzing
-                    {/* Fading dots effect */}
-                    <span className="animate-pulse">.</span>
-                    <span className="animate-pulse delay-75">.</span>
-                    <span className="animate-pulse delay-150">.</span>
-                  </h2>
-                </div>
-              ) : (
-                /* --- INPUT STATE --- */
-                <>
-                  <h2 className="text-lg font-medium">Upload Your Resume</h2>
-                  <Input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) =>
-                      setUploadedResumeFile(e.target.files?.[0] || null)
-                    }
-                  />
-                  <div className="flex gap-4">
-                    <Button
-                      disabled={!uploadedResumeFile}
-                      onClick={handleFileUpload}
-                    >
-                      Continue
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => setStep("ask")}
-                    >
-                      Back
-                    </Button>
-                  </div>
-                </>
-              )}
-            </div>
+            <UploadStep
+              isUploading={isUploading}
+              hasFile={Boolean(uploadedResumeFile)}
+              onFileChange={setUploadedResumeFile}
+              onContinue={handleFileUpload}
+              onBack={() => setStep("ask")}
+            />
           )}
 
-          {/* TEMPLATE STEP */}
           {step === "template" && (
-            <div className="w-full max-w-5xl flex flex-col items-center gap-8 animate-in fade-in duration-500">
-              <div className="text-center space-y-2">
-                <h2 className="text-3xl font-bold text-gray-800">
-                  Choose your look
-                </h2>
-                <p className="text-gray-500">
-                  Select a template to visualize your resume
-                </p>
-              </div>
-
-              {/* Grid: 2 Columns for Large, Clear Previews */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 w-full px-4">
-                {/* --- CLASSIC --- */}
-                <div
-                  className={`group relative aspect-[210/297] w-full rounded-xl border-2 cursor-pointer overflow-hidden transition-all hover:shadow-2xl hover:scale-[1.02] ${
-                    selectedTemplate === "classic"
-                      ? "border-blue-600 ring-4 ring-blue-100"
-                      : "border-gray-200"
-                  }`}
-                  onClick={() => handleTemplateSelect("classic")}
-                >
-                  <Image
-                    src="/template-classic.png"
-                    alt="Classic Template"
-                    width={300}
-                    height={400}
-                    className="w-full h-full object-cover object-top"
-                  />
-                  {/* Label Overlay */}
-                  <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4 pt-10 flex justify-center">
-                    <span className="text-white font-semibold tracking-wide">
-                      Classic
-                    </span>
-                  </div>
-                </div>
-
-                {/* --- ELEGANT --- */}
-                <div
-                  className={`group relative aspect-[210/297] w-full rounded-xl border-2 cursor-pointer overflow-hidden transition-all hover:shadow-2xl hover:scale-[1.02] ${
-                    selectedTemplate === "elegant"
-                      ? "border-blue-600 ring-4 ring-blue-100"
-                      : "border-gray-200"
-                  }`}
-                  onClick={() => handleTemplateSelect("elegant")}
-                >
-                  <Image
-                    src="/template-elegant.png"
-                    alt="Elegant Template"
-                    width={300}
-                    height={400}
-                    className="w-full h-full object-cover object-top"
-                  />
-                  <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4 pt-10 flex justify-center">
-                    <span className="text-white font-semibold tracking-wide">
-                      Elegant
-                    </span>
-                  </div>
-                </div>
-
-                {/* --- CORPORATE --- */}
-                <div
-                  className={`group relative aspect-[210/297] w-full rounded-xl border-2 cursor-pointer overflow-hidden transition-all hover:shadow-2xl hover:scale-[1.02] ${
-                    selectedTemplate === "corporate"
-                      ? "border-blue-600 ring-4 ring-blue-100"
-                      : "border-gray-200"
-                  }`}
-                  onClick={() => handleTemplateSelect("corporate")}
-                >
-                  <Image
-                    src="/template-corporate.png"
-                    alt="Corporate Template"
-                    width={300}
-                    height={400}
-                    className="w-full h-full object-cover object-top"
-                  />
-                  <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4 pt-10 flex justify-center">
-                    <span className="text-white font-semibold tracking-wide">
-                      Corporate
-                    </span>
-                  </div>
-                </div>
-
-                {/* --- CREATIVE --- */}
-                <div
-                  className={`group relative aspect-[210/297] w-full rounded-xl border-2 cursor-pointer overflow-hidden transition-all hover:shadow-2xl hover:scale-[1.02] ${
-                    selectedTemplate === "creative"
-                      ? "border-blue-600 ring-4 ring-blue-100"
-                      : "border-gray-200"
-                  }`}
-                  onClick={() => handleTemplateSelect("creative")}
-                >
-                  <Image
-                    src="/template-creative.png"
-                    alt="Creative Template"
-                    width={300}
-                    height={400}
-                    className="w-full h-full object-cover object-top"
-                  />
-                  <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4 pt-10 flex justify-center">
-                    <span className="text-white font-semibold tracking-wide">
-                      Creative
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                variant="outline"
-                onClick={() =>
-                  setStep(templateReturnStep === "preview" ? "preview" : "ask")
-                }
-                className="mt-4"
-              >
-                Back
-              </Button>
-            </div>
+            <TemplateStep
+              selectedTemplate={selectedTemplate}
+              onSelect={handleTemplateSelect}
+              onBack={() =>
+                setStep(templateReturnStep === "preview" ? "preview" : "ask")
+              }
+            />
           )}
         </div>
 
@@ -974,62 +832,27 @@ const ResumeMakerForm = () => {
                 >
                   Generate Resume
                 </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => openTemplatePicker("form")}
+                >
+                  Back to templates
+                </Button>
               </div>
             </Card>
           </>
         )}
 
-        {/* PREVIEW & DOWNLOAD STEP */}
         {step === "preview" && (
-          <div className="w-full flex flex-col items-center gap-6 pb-10 mt-10">
-            <div className="flex flex-col items-center gap-2 text-center">
-              <h1 className="text-3xl font-bold text-gray-800">
-                Your Resume is Ready!
-              </h1>
-              <p className="text-gray-500">
-                Review the AI-polished version below.
-              </p>
-            </div>
-
-            <div className="flex gap-4 sticky top-4 z-50 bg-white/80 backdrop-blur p-2 rounded-md shadow-lg border">
-              <Button
-                onClick={() => handlePrint()}
-                className="bg-green-600 hover:bg-green-700 font-bold px-8 shadow-md"
-              >
-                Download PDF
-              </Button>
-              <Button variant="outline" onClick={() => setStep("form")}>
-                Edit Data
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => openTemplatePicker("preview")}
-              >
-                Change Template
-              </Button>
-            </div>
-
-            {/* THE RESUME PREVIEW (Hidden wrapper for Print) */}
-            <div className="overflow-auto w-full flex justify-center bg-gray-100 p-8 rounded-lg border border-gray-200">
-              {/* This div is what gets printed */}
-              <div ref={printRef} className="bg-white shadow-2xl">
-                <ResumeScaler>
-                  {selectedTemplate === "classic" && (
-                    <TemplateClassic data={resumeData} />
-                  )}
-                  {selectedTemplate === "elegant" && (
-                    <TemplateElegant data={resumeData} />
-                  )}
-                  {selectedTemplate === "corporate" && (
-                    <TemplateCorporate data={resumeData} />
-                  )}
-                  {selectedTemplate === "creative" && (
-                    <TemplateCreative data={resumeData} />
-                  )}
-                </ResumeScaler>
-              </div>
-            </div>
-          </div>
+          <PreviewStep
+            resumeData={resumeData}
+            selectedTemplate={selectedTemplate}
+            printRef={printRef}
+            onPrint={() => handlePrint()}
+            onEdit={() => setStep("form")}
+            onChangeTemplate={() => openTemplatePicker("preview")}
+            onStartOver={handleStartOver}
+          />
         )}
       </div>
       <div className="mt-6 w-full">
