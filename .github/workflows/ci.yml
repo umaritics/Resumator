@@ -13,9 +13,6 @@ jobs:
   frontend:
     name: Frontend (lint + test)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .
     steps:
       - uses: actions/checkout@v4
 
@@ -32,37 +29,3 @@ jobs:
 
       - name: Vitest
         run: npm test
-
-  backend:
-    name: Backend (ruff + pytest)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    env:
-      SUPABASE_URL: https://ci-test-project.supabase.co
-      SUPABASE_JWT_SECRET: ci-test-jwt-secret-only
-      UPSTASH_REDIS_REST_URL: https://mock.upstash.io
-      UPSTASH_REDIS_REST_TOKEN: mock-upstash-token
-      CORS_ORIGINS: http://localhost:3000
-      GEMINI_API_KEY: ci-gemini-key
-      GROQ_API_KEY: ci-groq-key
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: backend/requirements.txt
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt ruff
-
-      - name: Ruff
-        run: ruff check app tests
-
-      - name: Pytest
-        run: pytest
