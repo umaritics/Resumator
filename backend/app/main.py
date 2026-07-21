@@ -14,7 +14,7 @@ Resumator V2 backend — multi-agent resume tailoring, ATS scoring, and cover le
 **Security:** Protected routes require `Authorization: Bearer <supabase_access_token>`.
 Optional-auth routes accept anonymous traffic for the try-before-sign-up wizard flow.
 
-**Status:** Phase 2 scaffolding — business logic placeholders return HTTP 501.
+**Status:** Production API — async generation jobs via Redis + LangGraph pipeline.
 """
 
 
@@ -57,7 +57,7 @@ def create_app() -> FastAPI:
 
     @app.get("/health", tags=["system"])
     async def healthcheck() -> dict[str, str]:
-        """Liveness probe for Cloud Run — no auth required."""
+        """Liveness probe for any container host — no auth required."""
         return {"status": "ok"}
 
     return app

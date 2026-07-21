@@ -265,7 +265,7 @@ pytest tests/test_api_jobs.py -v
 ### Local development
 
 Set real values in `.env.local` (already present for Upstash). Backend reads the same
-variable names via environment at Cloud Run deploy time — never from frontend bundles.
+variable names via environment at deploy time — never from frontend bundles.
 
 ---
 
@@ -281,7 +281,8 @@ npm ci && npm run lint && npm test
 pip install -r requirements.txt ruff && ruff check app tests && pytest
 ```
 
-Backend deploy: `.github/workflows/deploy-backend.yml` (Cloud Run, WIF auth) — see
-`docs/phase-6/architectural-context-ledger.md` for required GitHub secrets.
+Backend deploy is **not** in GitHub Actions. Use the host’s continuous deploy from
+`backend/Dockerfile` (Hugging Face Spaces, Render, later Azure Container Apps) — see
+`docs/phase-6/architectural-context-ledger.md`.
 
 Both CI test suites must pass with **zero external API calls**.

@@ -14,7 +14,7 @@ stays version-controlled.
 | [Phase 3 — Architectural Context Ledger](./phase-3/architectural-context-ledger.md) | ProviderRouter failover, document extraction, FakeLLM |
 | [Phase 4 — Architectural Context Ledger](./phase-4/architectural-context-ledger.md) | LangGraph pipeline, agent nodes, timed meta metrics |
 | [Phase 5 — Architectural Context Ledger](./phase-5/architectural-context-ledger.md) | Async jobs, Redis polling, TanStack Query, wizard integration |
-| [Phase 6 — Architectural Context Ledger](./phase-6/architectural-context-ledger.md) | GitHub Actions CI, Cloud Run deploy, cost caps |
+| [Phase 6 — Architectural Context Ledger](./phase-6/architectural-context-ledger.md) | CI, cloud-agnostic Docker, HF/Render/Azure path |
 | [Testing Guide](./testing.md) | Vitest, pytest, JWT mocking, Redis mocking |
 
 ## Documentation protocol (all phases)

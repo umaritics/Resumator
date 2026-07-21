@@ -15,7 +15,8 @@ _REPO_ROOT = _BACKEND_DIR.parent
 class Settings(BaseSettings):
     """Runtime settings for FastAPI, Supabase JWT verification, and Upstash Redis.
 
-    Uses pydantic-settings so Cloud Run/Vercel env injection is validated at startup.
+    Uses pydantic-settings so host env injection (HF Spaces, Render, Azure, local) is
+    validated at startup.
     Local dev loads ``backend/.env*`` and repo-root ``.env*`` (shared with Next.js).
     """
 
