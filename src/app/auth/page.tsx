@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,6 @@ function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const authError = searchParams.get("error");
-  const supabase = useMemo(() => createClient(), []);
 
   const handleAuth = async (
     e: React.FormEvent<HTMLFormElement>,
@@ -26,6 +25,7 @@ function AuthForm() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+    const supabase = createClient();
 
     if (type === "login") {
       const { error } = await supabase.auth.signInWithPassword({
@@ -48,6 +48,7 @@ function AuthForm() {
 
   const handleGoogle = async () => {
     setLoading(true);
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
