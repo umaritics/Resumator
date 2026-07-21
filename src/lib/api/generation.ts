@@ -7,7 +7,9 @@
 import type { ResumeData } from "@/lib/types/resume";
 import { GENERATION_FAILED_MESSAGE, logClientError } from "@/lib/userMessages";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+).replace(/\/+$/, "");
 
 export type JobStatus = "pending" | "running" | "done" | "failed";
 
