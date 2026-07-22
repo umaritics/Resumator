@@ -14,6 +14,7 @@ import {
   GENERATION_FAILED_MESSAGE,
   UPLOAD_FAILED_MESSAGE,
   logClientError,
+  messageForGenerationError,
 } from "@/lib/userMessages";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { AskStep } from "@/components/resume-maker/AskStep";
 import { UploadStep } from "@/components/resume-maker/UploadStep";
@@ -111,10 +113,17 @@ const ResumeMakerForm = () => {
     setStep(templateReturnStep);
   };
 
-  const showGenerationFailure = useCallback(() => {
-    setGenerationError(GENERATION_FAILED_MESSAGE);
-    setStep("form");
-  }, [setStep]);
+  const showGenerationFailure = useCallback(
+    (error?: unknown) => {
+      setGenerationError(
+        error !== undefined
+          ? messageForGenerationError(error)
+          : GENERATION_FAILED_MESSAGE,
+      );
+      setStep("form");
+    },
+    [setStep],
+  );
 
   const handleStartOver = () => {
     setUploadedResumeFile(null);
@@ -251,7 +260,7 @@ const ResumeMakerForm = () => {
       setActiveJobId(job_id);
     } catch (error) {
       logClientError("start generation", error);
-      showGenerationFailure();
+      showGenerationFailure(error);
       setActiveJobId(null);
     }
   };
@@ -261,7 +270,7 @@ const ResumeMakerForm = () => {
       return;
     }
     logClientError("generation poll", jobQuery.error);
-    showGenerationFailure();
+    showGenerationFailure(jobQuery.error);
     setActiveJobId(null);
   }, [activeJobId, jobQuery.isError, jobQuery.error, showGenerationFailure]);
 
@@ -363,11 +372,34 @@ const ResumeMakerForm = () => {
 
         {/* FORM STEP */}
         {step === "form" && (
-          <>
-            <h1 className="mt-10 text-3xl text-blue-600 font-bold mb-6 flex justify-center text-center">
+          <div className="relative w-full max-w-4xl">
+            <Button
+              type="button"
+              variant="outline"
+              className="absolute left-0 top-0 z-20 gap-1.5"
+              onClick={() => openTemplatePicker("form")}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+
+            <button
+              type="button"
+              aria-label="Scroll to Generate Resume"
+              className="fixed right-3 sm:right-6 top-1/2 -translate-y-1/2 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+              onClick={() =>
+                document
+                  .getElementById("generate-resume")
+                  ?.scrollIntoView({ behavior: "smooth", block: "center" })
+              }
+            >
+              <ChevronDown className="h-6 w-6" />
+            </button>
+
+            <h1 className="mt-12 sm:mt-10 text-3xl text-blue-600 font-bold mb-6 flex justify-center text-center">
               Resume Maker
             </h1>
-            <Card className="w-full max-w-4xl">
+            <Card className="w-full">
               <CardContent className="space-y-4 p-6">
                 {/* --- PERSONAL INFO --- */}
                 <h2 className="text-xl text-blue-600 font-semibold">
@@ -827,20 +859,15 @@ const ResumeMakerForm = () => {
                   <p className="text-sm text-red-600 text-center">{generationError}</p>
                 )}
                 <Button
+                  id="generate-resume"
                   className="w-full max-w-lg bg-green-600 hover:bg-green-800 text-lg py-6"
                   onClick={handleSubmit}
                 >
                   Generate Resume
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => openTemplatePicker("form")}
-                >
-                  Back to templates
-                </Button>
               </div>
             </Card>
-          </>
+          </div>
         )}
 
         {step === "preview" && (

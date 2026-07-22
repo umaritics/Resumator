@@ -5,7 +5,11 @@
  * `mergeTailoredResume` re-applies wizard-only state after the pipeline returns.
  */
 import type { ResumeData } from "@/lib/types/resume";
-import { GENERATION_FAILED_MESSAGE, logClientError } from "@/lib/userMessages";
+import {
+  API_UNREACHABLE_MESSAGE,
+  GENERATION_FAILED_MESSAGE,
+  logClientError,
+} from "@/lib/userMessages";
 
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
@@ -109,7 +113,13 @@ async function apiFetch<T>(
     headers.Authorization = `Bearer ${accessToken}`;
   }
 
-  const response = await fetch(`${API_BASE}${path}`, { ...init, headers });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, { ...init, headers });
+  } catch (error) {
+    logClientError(`API ${path} network`, error);
+    throw new Error(API_UNREACHABLE_MESSAGE);
+  }
 
   if (!response.ok) {
     const detail = await response.text();
